@@ -2,10 +2,12 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 
 public class ProofOfWork {
-//    private static final int TARGET = 4; // Target number of leading zeros in hash
     private static final String ALGORITHM = "SHA-256"; // Hashing algorithm
+    private static final int BLOCK_GENERATION_INTERVAL = 250; // defines how often a block should be found (in ms)
+    private static final int DIFFICULTY_ADJUSTMENT_INTERVAL = 1; //defines how often the difficulty should be adjusted with the increasing or decreasing network hashrate.
 
     // find the next block
     public static Block findBlock(int index, String previousHash, long timestamp, String data, int difficulty) throws NoSuchAlgorithmException {
@@ -21,6 +23,7 @@ public class ProofOfWork {
         }
     }
 
+    // calculate the SHA-256
     public static String calculateHash(String input) throws NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance(ALGORITHM);
         byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
@@ -35,13 +38,12 @@ public class ProofOfWork {
     public static Boolean hashMatchesDifficulty(String hash, int difficulty) {
         // convert it in binary
         String hashInBinary = hexToBinary(hash);
-//        System.out.println(hashInBinary);
         // store the number "0" of difficulty
-        String requiredPrefix = "";
+        StringBuilder requiredPrefix = new StringBuilder();
         for (int i = 0; i < difficulty; i++) {
-            requiredPrefix += "0";
+            requiredPrefix.append("0");
         }
-        return hashInBinary.startsWith(requiredPrefix);
+        return hashInBinary.startsWith(requiredPrefix.toString());
     }
 
     // convert string hash to binary string
@@ -50,8 +52,9 @@ public class ProofOfWork {
         String binaryString = String.format("%256s", new BigInteger(1, hashBytes).toString(2)).replace(' ', '0'); // convert byte array to binary string with leading zeros
         return binaryString;
     }
+
     // convert string hash to byte array
-    public static byte[] hexStringToByteArray(String hexString) {
+    private static byte[] hexStringToByteArray(String hexString) {
         int len = hexString.length();
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {
@@ -61,4 +64,29 @@ public class ProofOfWork {
         return data;
     }
 
+    // determine to change the difficulty and get the latest difficulty
+    public static int getDifficulty(ArrayList<Block> aBlockChain){
+        Block latestBlock = aBlockChain.get(aBlockChain.size() - 1);
+        if(latestBlock.getIndex() % DIFFICULTY_ADJUSTMENT_INTERVAL == 0 && latestBlock.getIndex() != 0){
+            return getAdjustedDifficulty(latestBlock, aBlockChain);
+        }else{
+            return latestBlock.getDifficulty();
+        }
+    }
+
+    // get the Adjusted difficulty value
+    private static int getAdjustedDifficulty(Block latestBlock, ArrayList<Block> aBlockChain){
+        Block prevAdjustmentBlock = aBlockChain.get(aBlockChain.size() - DIFFICULTY_ADJUSTMENT_INTERVAL);
+        long timeExpected = BLOCK_GENERATION_INTERVAL * DIFFICULTY_ADJUSTMENT_INTERVAL;
+        long timeTaken = latestBlock.getTimestamp() - prevAdjustmentBlock.getTimestamp();
+        if (timeTaken < timeExpected / 2) {
+            System.out.println("Difficulty increased by 1");
+            return prevAdjustmentBlock.getDifficulty() + 1;
+        } else if (timeTaken > timeExpected * 2) {
+            System.out.println("Difficulty decreased by 1");
+            return prevAdjustmentBlock.getDifficulty() - 1;
+        } else {
+            return prevAdjustmentBlock.getDifficulty();
+        }
+    }
 }
