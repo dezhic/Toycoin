@@ -8,7 +8,7 @@ public class ProofOfWork {
     private static final String ALGORITHM = "SHA-256"; // Hashing algorithm
 
     // Helper method to calculate hash value of input string using SHA-256 algorithm
-    public static String hash(String input) throws NoSuchAlgorithmException {
+    public static String calculateHash(String input) throws NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance(ALGORITHM);
         byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
         StringBuilder hash = new StringBuilder();
