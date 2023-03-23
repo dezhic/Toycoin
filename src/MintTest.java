@@ -4,22 +4,17 @@ import java.security.NoSuchAlgorithmException;
 public class MintTest {
     public static void main(String[]args) throws NoSuchAlgorithmException {
         // Block information
-        String previousHash = "0000000000000000000000000000000000000000000000000000000000000000";
-        String data = "Bruh";
+        String previousHash = "0";
+        String data = "Bruhqweqweqweqweqwe";
         long timestamp = System.currentTimeMillis();
-        Block block = findBlock(0, previousHash, timestamp, data, 1);
+
+        // find a valid block hash
+        long start = System.currentTimeMillis(); //get start time
+        Block block = ProofOfWork.findBlock(0, previousHash, timestamp, data, 8);
+        long end = System.currentTimeMillis(); //get end time
         System.out.println("New block added to blockchain with hash: " + block.getHash());
+        System.out.println("Nonce: " + block.getNonce());
+        System.out.println("running time：" + (end-start) + "ms"); //get running time
     }
-    // find a valid block hash
-    public static Block findBlock(int index, String previousHash, long timestamp, String data, int difficulty) throws NoSuchAlgorithmException {
-        int nonce = 0;
-        String blockData = index + previousHash + timestamp + data + difficulty + nonce;
-        while (true) {
-            String hash = ProofOfWork.calculateHash(blockData);
-            if(ProofOfWork.hashMatchesDifficulty(hash, difficulty)){
-                return new Block(index, hash, previousHash, timestamp, data, difficulty, nonce);
-            }
-            nonce++;
-        }
-    }
+
 }

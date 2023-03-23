@@ -7,7 +7,20 @@ public class ProofOfWork {
 //    private static final int TARGET = 4; // Target number of leading zeros in hash
     private static final String ALGORITHM = "SHA-256"; // Hashing algorithm
 
-    // Helper method to calculate hash value of input string using SHA-256 algorithm
+    // find the next block
+    public static Block findBlock(int index, String previousHash, long timestamp, String data, int difficulty) throws NoSuchAlgorithmException {
+        int nonce = 0;
+
+        while (true) {
+            String blockData = index + previousHash + timestamp + data + difficulty + nonce;
+            String hash = calculateHash(blockData);
+            if(hashMatchesDifficulty(hash, difficulty)){
+                return new Block(index, hash, previousHash, timestamp, data, difficulty, nonce);
+            }
+            nonce++;
+        }
+    }
+
     public static String calculateHash(String input) throws NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance(ALGORITHM);
         byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
@@ -22,6 +35,7 @@ public class ProofOfWork {
     public static Boolean hashMatchesDifficulty(String hash, int difficulty) {
         // convert it in binary
         String hashInBinary = hexToBinary(hash);
+//        System.out.println(hashInBinary);
         // store the number "0" of difficulty
         String requiredPrefix = "";
         for (int i = 0; i < difficulty; i++) {
