@@ -33,7 +33,6 @@ public class MintTest {
             Block block = ProofOfWork.findBlock(newBlock.getIndex(), newBlock.getPreviousHash(), newBlock.getTimestamp(), newBlock.getData(), newBlock.getDifficulty());
             //store the block
             blockchain.add(block);
-            System.out.println("block length: " +blockchain.size());
             long end = System.currentTimeMillis(); //get end time
             System.out.println("New block added to blockchain with hash: " + block.getHash());
             System.out.println("Nonce: " + block.getNonce());
