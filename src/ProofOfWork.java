@@ -8,7 +8,7 @@ public class ProofOfWork {
     private static final String ALGORITHM = "SHA-256"; // Hashing algorithm
 
     // Helper method to calculate hash value of input string using SHA-256 algorithm
-    public String hash(String input) throws NoSuchAlgorithmException {
+    public static String hash(String input) throws NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance(ALGORITHM);
         byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
         StringBuilder hash = new StringBuilder();
@@ -19,7 +19,7 @@ public class ProofOfWork {
     }
 
     // Check whether the hash is correct in terms of difficulty
-    public Boolean hashMatchesDifficulty(String hash, int difficulty) {
+    public static Boolean hashMatchesDifficulty(String hash, int difficulty) {
         // convert it in binary
         String hashInBinary = hexToBinary(hash);
         // store the number "0" of difficulty
@@ -31,13 +31,13 @@ public class ProofOfWork {
     }
 
     // convert string hash to binary string
-    public String hexToBinary(String hash){
+    public static String hexToBinary(String hash){
         byte[] hashBytes = hexStringToByteArray(hash); // convert hex string to byte array
         String binaryString = String.format("%256s", new BigInteger(1, hashBytes).toString(2)).replace(' ', '0'); // convert byte array to binary string with leading zeros
         return binaryString;
     }
     // convert string hash to byte array
-    private byte[] hexStringToByteArray(String hexString) {
+    public static byte[] hexStringToByteArray(String hexString) {
         int len = hexString.length();
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {

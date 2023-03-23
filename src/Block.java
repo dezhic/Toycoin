@@ -1,13 +1,13 @@
-class Block {
+public class Block {
     private int index;
     private String hash;
     private String previousHash;
-    private int timestamp;
+    private long timestamp;
     private String data;
     private int difficulty; //The difficulty defines how many prefixing zeros the block hash must have, for the block to be valid.
     private int nonce; // default: 0
 
-    public Block(int index, String hash, String previousHash, int timestamp, String data, int difficulty, int nonce) {
+    public Block(int index, String hash, String previousHash, long timestamp, String data, int difficulty, int nonce) {
         this.index = index;
         this.hash = hash;
         this.previousHash = previousHash;
@@ -29,7 +29,7 @@ class Block {
         return previousHash;
     }
 
-    public int getTimestamp() {
+    public long getTimestamp() {
         return timestamp;
     }
 
