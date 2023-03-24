@@ -1,11 +1,7 @@
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Random;
 
-public class MintTest {
+public class MiningTest {
     public static ArrayList<Block> blockchain = new ArrayList<Block>(); // store the Block
     public static int diff = 12;
 
