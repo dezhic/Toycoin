@@ -1,0 +1,41 @@
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.LinkedList;
+import java.util.List;
+
+public class LocalServer extends Thread {
+    private int port;
+    ServerSocket server;
+
+    private List<RemoteClient> clients;
+
+    public LocalServer() throws IOException {
+        this.port = Integer.parseInt(System.getenv("PORT"));
+        this.server = new ServerSocket(this.port);
+        this.clients = new LinkedList<>();
+    }
+
+    @Override
+    public void run() {
+        try {
+            accept();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void accept() throws IOException {
+        while (true) {
+            Socket clientSocket = server.accept();
+            RemoteClient newClient = new RemoteClient(clientSocket, this);
+            newClient.start();
+            this.clients.add(newClient);
+        }
+    }
+
+    public synchronized void removeClient(RemoteClient client) {
+        this.clients.remove(client);
+    }
+
+}

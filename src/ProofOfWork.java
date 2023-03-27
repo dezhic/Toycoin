@@ -10,14 +10,14 @@ public class ProofOfWork {
     private static final int DIFFICULTY_ADJUSTMENT_INTERVAL = 1; //defines how often the difficulty should be adjusted with the increasing or decreasing network hashrate.
 
     // find the next block
-    public static Block findBlock(int index, String previousHash, long timestamp, String data, int difficulty) throws NoSuchAlgorithmException {
+    public static Block findBlock(Block prevBlock, int index, String previousHash, long timestamp, String data, int difficulty) throws NoSuchAlgorithmException {
         int nonce = 0;
 
         while (true) {
             String blockData = index + previousHash + timestamp + data + difficulty + nonce;
             String hash = calculateHash(blockData);
             if(hashMatchesDifficulty(hash, difficulty)){
-                return new Block(index, hash, previousHash, timestamp, data, difficulty, nonce);
+                return new Block(prevBlock, index, hash, previousHash, timestamp, data, difficulty, nonce);
             }
             nonce++;
         }
