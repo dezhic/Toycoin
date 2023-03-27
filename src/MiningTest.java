@@ -8,9 +8,9 @@ public class MiningTest {
 
     public static void main(String[]args) throws NoSuchAlgorithmException, IOException {
 
-        LocalServer localServer = new LocalServer();
-        localServer.start();
         LocalClient localClient = new LocalClient(null);
+        LocalServer localServer = new LocalServer(localClient);
+        localServer.start();
         // Block information
         String previousHash = "0";
         String data = "Bruh";

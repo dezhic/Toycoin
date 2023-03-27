@@ -3,6 +3,7 @@ import protocol.Message;
 import protocol.datatype.InventoryItem;
 import protocol.datatype.InventoryType;
 import protocol.message.Inv;
+import protocol.message.Version;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -22,5 +23,23 @@ public class RemoteServer {
         Message msg = new Message(Command.INV, inv);
         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
         oos.writeObject(msg);
+    }
+
+    public void sendVersion(Version version) throws IOException {
+        Message message = new Message(Command.VERSION, version);
+        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+        oos.writeObject(message);
+        System.out.println("Sent version to " + socket.getInetAddress() + ":" + socket.getPort());
+    }
+
+    public void sendVerAck() throws IOException {
+        Message message = new Message(Command.VERACK, null);
+        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+        oos.writeObject(message);
+        System.out.println("Sent verack to " + socket.getInetAddress() + ":" + socket.getPort());
+    }
+
+    public Socket getSocket() {
+        return socket;
     }
 }

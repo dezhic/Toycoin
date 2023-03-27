@@ -8,6 +8,7 @@ import java.io.Serializable;
  * @see <a href="https://en.bitcoin.it/wiki/Protocol_documentation#Message_structure">Protocol Documentation - Message Structure</a>
  */
 public enum Command implements Serializable {
+    VERSION, VERACK,
     GETBLOCKS, INV,
     GETDATA, BLOCK, TX, NOTFOUND
 }

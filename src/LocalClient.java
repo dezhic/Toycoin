@@ -1,5 +1,6 @@
 import protocol.Command;
 import protocol.Message;
+import protocol.message.Version;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,7 +26,9 @@ public class LocalClient {
         // get my own outbound server info
         String port = System.getenv("PORT");
         // get servers from DNS seeds
-        File dnsSeeds = new File("dns_seeds.txt");
+        String seedFilename = System.getenv("DNS_SEEDS_FILENAME");
+        seedFilename = seedFilename == null ? "dns_seeds.txt" : seedFilename;
+        File dnsSeeds = new File(seedFilename);
         Scanner sc = new Scanner(dnsSeeds);
         while (sc.hasNextLine()) {
             String[] server = sc.nextLine().split(":");
@@ -35,12 +38,34 @@ public class LocalClient {
             }
 
             try {
-                RemoteServer rs = new RemoteServer(new Socket(server[0], Integer.parseInt(server[1])));
-                servers.add(rs);
+                addServer(server[0], Integer.parseInt(server[1]));
             } catch (IOException e) {
                 System.out.println("Could not connect to server " + server[0] + ":" + server[1]);
             }
         }
+    }
+
+    public RemoteServer addServer(String host, int port) throws IOException {
+        // Check if server already exists
+        for (RemoteServer server : servers) {
+            if (server.getSocket().getInetAddress().getHostAddress().equals(host) &&
+                    server.getSocket().getPort() == port) {
+                return server;
+            }
+        }
+        RemoteServer rs = new RemoteServer(new Socket(host, port));
+        System.out.println("Connected to server " + host + ":" + port);
+        sendVersion(rs);
+        servers.add(rs);
+        return rs;
+    }
+    private void sendVersion(RemoteServer server) throws IOException {
+        Version version = new Version("127.0.0.1:" + System.getenv("PORT"));
+        server.sendVersion(version);
+    }
+
+    void sendVerAck(RemoteServer server) throws IOException {
+        server.sendVerAck();
     }
 
     public void broadcastNewBlock(Block block) throws IOException {
