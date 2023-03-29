@@ -1,5 +1,6 @@
 import protocol.Command;
 import protocol.Message;
+import protocol.message.Addr;
 import protocol.message.Version;
 
 import java.io.File;
@@ -19,10 +20,9 @@ public class LocalClient {
     public LocalClient(Blockchain blockchain) throws IOException {
         this.blockchain = blockchain;
         servers = new LinkedList<>();
-        initialize();
     }
 
-    private void initialize() throws IOException {
+    public void initialize() throws IOException {
         // get my own outbound server info
         String port = System.getenv("PORT");
         // get servers from DNS seeds
@@ -50,6 +50,7 @@ public class LocalClient {
         for (RemoteServer server : servers) {
             if (server.getSocket().getInetAddress().getHostAddress().equals(host) &&
                     server.getSocket().getPort() == port) {
+                System.out.println("Server " + host + ":" + port + " already exists");
                 return server;
             }
         }
@@ -71,8 +72,44 @@ public class LocalClient {
     public void broadcastNewBlock(Block block) throws IOException {
         Message message = new Message(Command.BLOCK, block);
         for (RemoteServer server : servers) {
-            server.sendBlock(block);
+            try {
+                server.sendBlock(block);
+            } catch (IOException e) {
+                System.out.println("Could not send block to " + server.getSocket().getInetAddress().getHostAddress() + ":" + server.getSocket().getPort());
+                servers.remove(server);
+                System.out.println("Removed server " + server.getSocket().getInetAddress().getHostAddress() + ":" + server.getSocket().getPort());
+            }
         }
+    }
+
+    public void broadcastGetAddr() throws IOException {
+        for (RemoteServer server : servers) {
+            server.sendGetAddr();
+        }
+        System.out.println("Sent getaddr to all servers");
+    }
+
+    public void sendAddr(RemoteServer rs) {
+        List<String> addresses = new LinkedList<>();
+        for (RemoteServer server : servers) {
+            addresses.add(server.getSocket().getInetAddress().getHostAddress() + ":" + server.getSocket().getPort());
+        }
+        Addr addr = new Addr(addresses);
+        try {
+            rs.sendAddr(addr);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Could not send addr to " + rs.getSocket().getInetAddress().getHostAddress() + ":" + rs.getSocket().getPort());
+        }
+    }
+
+    RemoteServer getRemoteServer(String host) {
+        for (RemoteServer server : servers) {
+            if (server.getSocket().getInetAddress().getHostAddress().equals(host)) {
+                return server;
+            }
+        }
+        return null;
     }
 
 

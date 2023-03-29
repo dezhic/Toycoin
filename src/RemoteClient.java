@@ -1,5 +1,6 @@
 import com.google.gson.Gson;
 import protocol.Message;
+import protocol.message.Addr;
 import protocol.message.Inv;
 import protocol.message.Version;
 
@@ -44,12 +45,23 @@ public class RemoteClient extends Thread {
                         break;
                     case VERACK:
                         break;
+                    case GETADDR:
+                        handleGetAddr(message.getPayload());
+                        break;
+                    case ADDR:
+                        handleAddr(message.getPayload());
+                        break;
                     default:
                         throw new Exception("Unknown command: " + message.getCommand());
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println("Bad client, f*** off!");
+                try {
+                    socket.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
                 localServer.removeClient(this);
                 break;
             }
@@ -70,7 +82,34 @@ public class RemoteClient extends Thread {
             RemoteServer rs = localClient.addServer(address[0], Integer.parseInt(address[1]));
             localClient.sendVerAck(rs);
         } catch (Exception e) {
+            e.printStackTrace();
             System.out.println("Cannot connect to " + version.getLocalAddress() + " when sending verack");
+        }
+    }
+
+    private void handleGetAddr(Object payload) {
+        RemoteServer rs = localClient.getRemoteServer(socket.getInetAddress().getHostAddress());
+        localClient.sendAddr(rs);
+    }
+
+    private void handleAddr(Object payload) {
+        Addr addr = (Addr) payload;
+        System.out.println("Received " + addr.getAddresses().size() + " addresses from " +
+                socket.getInetAddress().getHostAddress() + ":" + socket.getPort());
+        for (String address : addr.getAddresses()) {
+
+            System.out.println("Connecting to " + address);
+            String[] addressSplit = address.split(":");
+            String myPort = System.getenv("PORT");
+            if ((addressSplit[0].equals("localhost")) || (addressSplit[0].equals("127.0.0.1")) && (addressSplit[1].equals(myPort))) {
+                System.out.println("Skipping myself");
+                continue; // skip myself
+            }
+            try {
+                localClient.addServer(addressSplit[0], Integer.parseInt(addressSplit[1]));
+            } catch (IOException e) {
+                System.out.println("Cannot connect to " + address + " when sending addr");
+            }
         }
     }
 

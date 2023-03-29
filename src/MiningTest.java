@@ -11,6 +11,7 @@ public class MiningTest {
         LocalClient localClient = new LocalClient(null);
         LocalServer localServer = new LocalServer(localClient);
         localServer.start();
+        localClient.initialize();  // localClient needs to initialize AFTER localServer starts!
         // Block information
         String previousHash = "0";
         String data = "Bruh";
@@ -40,6 +41,11 @@ public class MiningTest {
 
             // broadcast the new block
             localClient.broadcastNewBlock(block);
+
+            // get new addresses
+            if (blockchain.size() % 20 == 0) {
+                localClient.broadcastGetAddr();
+            }
 
         }
     }

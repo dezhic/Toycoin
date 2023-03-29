@@ -2,6 +2,7 @@ import protocol.Command;
 import protocol.Message;
 import protocol.datatype.InventoryItem;
 import protocol.datatype.InventoryType;
+import protocol.message.Addr;
 import protocol.message.Inv;
 import protocol.message.Version;
 
@@ -9,6 +10,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Collections;
+import java.util.List;
 
 public class RemoteServer {
     private Socket socket;
@@ -37,6 +39,20 @@ public class RemoteServer {
         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
         oos.writeObject(message);
         System.out.println("Sent verack to " + socket.getInetAddress() + ":" + socket.getPort());
+    }
+
+    public void sendGetAddr() throws IOException {
+        Message message = new Message(Command.GETADDR, null);
+        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+        oos.writeObject(message);
+        System.out.println("Sent getaddr to " + socket.getInetAddress() + ":" + socket.getPort());
+    }
+
+    public void sendAddr(Addr addr) throws IOException {
+        Message message = new Message(Command.ADDR, addr);
+        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+        oos.writeObject(message);
+        System.out.println("Sent addr to " + socket.getInetAddress() + ":" + socket.getPort());
     }
 
     public Socket getSocket() {
