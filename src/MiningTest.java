@@ -1,9 +1,12 @@
+import protocol.datatype.Tx;
+
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MiningTest {
-    public static ArrayList<Block> blockchain = new ArrayList<Block>(); // store the Block
+    public static Blockchain blockchain; // store the Block
     public static int diff = 12;
 
     public static void main(String[]args) throws NoSuchAlgorithmException, IOException {
@@ -19,7 +22,7 @@ public class MiningTest {
 
         // declare the First block
         Block firstBlock = ProofOfWork.findBlock(null, 0, previousHash, timestamp, data, diff);
-        blockchain.add(firstBlock);
+        blockchain = new Blockchain(firstBlock);
 
         // find a valid block
         while(true){
@@ -35,9 +38,9 @@ public class MiningTest {
             //store the block
             blockchain.add(block);
             long end = System.currentTimeMillis(); //get end time
-            System.out.println("New block added to blockchain with hash: " + block.getHash());
-            System.out.println("Nonce: " + block.getNonce());
-            System.out.println("running time：" + (end-start) + "ms"); //get running time
+//            System.out.println("New block added to blockchain with hash: " + block.getHash());
+//            System.out.println("Nonce: " + block.getNonce());
+//            System.out.println("running time：" + (end-start) + "ms"); //get running time
 
             // broadcast the new block
             localClient.broadcastNewBlock(block);

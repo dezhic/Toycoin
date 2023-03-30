@@ -10,4 +10,12 @@ public class InventoryItem implements Serializable {
         this.type = type;
         this.hash = hash;
     }
+
+    public InventoryType getType() {
+        return type;
+    }
+
+    public String getHash() {
+        return hash;
+    }
 }

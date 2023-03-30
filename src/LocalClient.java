@@ -1,6 +1,7 @@
 import protocol.Command;
 import protocol.Message;
 import protocol.message.Addr;
+import protocol.message.GetData;
 import protocol.message.Version;
 
 import java.io.File;
@@ -73,7 +74,7 @@ public class LocalClient {
         Message message = new Message(Command.BLOCK, block);
         for (RemoteServer server : servers) {
             try {
-                server.sendBlock(block);
+                server.sendBlockInv(block);
             } catch (IOException e) {
                 System.out.println("Could not send block to " + server.getSocket().getInetAddress().getHostAddress() + ":" + server.getSocket().getPort());
                 servers.remove(server);
@@ -101,6 +102,32 @@ public class LocalClient {
             e.printStackTrace();
             System.out.println("Could not send addr to " + rs.getSocket().getInetAddress().getHostAddress() + ":" + rs.getSocket().getPort());
         }
+    }
+
+    public void sendGetData(RemoteServer rs, GetData getData) {
+        try {
+            rs.sendGetData(getData);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Could not send getdata to " + rs.getSocket().getInetAddress().getHostAddress() + ":" + rs.getSocket().getPort());
+        }
+    }
+
+    public void sendBlock(RemoteServer rs, Block block) {
+        try {
+            rs.sendBlock(block);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Could not send block to " + rs.getSocket().getInetAddress().getHostAddress() + ":" + rs.getSocket().getPort());
+        }
+    }
+
+    public boolean hasBlock(String hash) {
+        return blockchain.hasBlock(hash);
+    }
+
+    public Block getBlock(String hash) {
+        return blockchain.getBlock(hash);
     }
 
     RemoteServer getRemoteServer(String host) {

@@ -2,7 +2,7 @@ import java.io.Serializable;
 
 public class Block implements Serializable {
     private Block prevBlock;
-    private int index;
+    private int index;  // height
     private String hash;
     private String previousHash;
     private long timestamp;
@@ -76,4 +76,13 @@ public class Block implements Serializable {
     public void setNonce(int nonce) {
         this.nonce = nonce;
     }
+
+    public Block getPrevBlock() {
+        return prevBlock;
+    }
+
+    public void setPrevBlock(Block prevBlock) {
+        this.prevBlock = prevBlock;
+    }
+
 }

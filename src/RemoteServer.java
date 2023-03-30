@@ -3,6 +3,7 @@ import protocol.Message;
 import protocol.datatype.InventoryItem;
 import protocol.datatype.InventoryType;
 import protocol.message.Addr;
+import protocol.message.GetData;
 import protocol.message.Inv;
 import protocol.message.Version;
 
@@ -10,7 +11,6 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Collections;
-import java.util.List;
 
 public class RemoteServer {
     private Socket socket;
@@ -19,7 +19,7 @@ public class RemoteServer {
         this.socket = socket;
     }
 
-    public void sendBlock(Block block) throws IOException {
+    public void sendBlockInv(Block block) throws IOException {
         InventoryItem item = new InventoryItem(InventoryType.MSG_BLOCK, block.getHash());
         Inv inv = new Inv(Collections.singletonList(item));
         Message msg = new Message(Command.INV, inv);
@@ -53,6 +53,20 @@ public class RemoteServer {
         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
         oos.writeObject(message);
         System.out.println("Sent addr to " + socket.getInetAddress() + ":" + socket.getPort());
+    }
+
+    public void sendGetData(GetData getData) throws IOException {
+        Message message = new Message(Command.GETDATA, getData);
+        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+        oos.writeObject(message);
+        System.out.println("Sent getdata to " + socket.getInetAddress() + ":" + socket.getPort());
+    }
+
+    public void sendBlock(Block block) throws IOException {
+        Message message = new Message(Command.BLOCK, block);
+        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+        oos.writeObject(message);
+        System.out.println("Sent block to " + socket.getInetAddress() + ":" + socket.getPort());
     }
 
     public Socket getSocket() {

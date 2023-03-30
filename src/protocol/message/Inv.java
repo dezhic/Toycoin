@@ -10,8 +10,13 @@ import java.util.List;
  * @see <a href="https://reference.cash/protocol/network/messages/inv">Announcement: Inventory (“inv”)</a>
  */
 public class Inv implements Serializable {
-    List<InventoryItem> inventory;
+    private List<InventoryItem> inventory;
     public Inv(List<InventoryItem> inventory) {
         this.inventory = inventory;
+    }
+
+
+    public List<InventoryItem> getInventory() {
+        return inventory;
     }
 }

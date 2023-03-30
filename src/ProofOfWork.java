@@ -65,7 +65,7 @@ public class ProofOfWork {
     }
 
     // determine to change the difficulty and get the latest difficulty
-    public static int getDifficulty(ArrayList<Block> aBlockChain){
+    public static int getDifficulty(Blockchain aBlockChain){
         Block latestBlock = aBlockChain.get(aBlockChain.size() - 1);
         if(latestBlock.getIndex() % DIFFICULTY_ADJUSTMENT_INTERVAL == 0 && latestBlock.getIndex() != 0){
             return getAdjustedDifficulty(latestBlock, aBlockChain);
@@ -75,7 +75,7 @@ public class ProofOfWork {
     }
 
     // get the Adjusted difficulty value
-    private static int getAdjustedDifficulty(Block latestBlock, ArrayList<Block> aBlockChain){
+    private static int getAdjustedDifficulty(Block latestBlock, Blockchain aBlockChain){
         Block prevAdjustmentBlock = aBlockChain.get(aBlockChain.size() - DIFFICULTY_ADJUSTMENT_INTERVAL);
         long timeExpected = BLOCK_GENERATION_INTERVAL * DIFFICULTY_ADJUSTMENT_INTERVAL;
         long timeTaken = latestBlock.getTimestamp() - prevAdjustmentBlock.getTimestamp();
