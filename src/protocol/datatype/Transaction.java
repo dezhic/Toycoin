@@ -1,6 +1,10 @@
 import java.io.Serializable;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import javax.xml.bind.DatatypeConverter;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+
 
 public class Transaction implements Serializable {
     private String id;
@@ -25,17 +29,20 @@ public class Transaction implements Serializable {
         return txOuts;
     }
 
-    private String calculateTransactionId() throws NoSuchAlgorithmException {
-        StringBuilder txInContent = new StringBuilder();
-        for (TxIn txIn : txIns) {
-            txInContent.append(txIn.getPrevTxOutId()).append(txIn.getPrevTxOutIndex());
+    private String constgetTransactionId() throws NoSuchAlgorithmException {
+        StringBuilder txInputContent = new StringBuilder();
+        for (TxInput txInput : txInputs) {
+            txInputContent.append(txInput.getTxOutId()).append(txInput.getTxOutIndex());
         }
 
-        StringBuilder txOutContent = new StringBuilder();
-        for (TxOut txOut : txOuts) {
-            txOutContent.append(txOut.getValue()).append(txOut.getScriptPubKey());
+        StringBuilder txOutputContent = new StringBuilder();
+        for (TxOutput txOutput : txOutputs) {
+            txOutputContent.append(txOutput.getAddress()).append(txOutput.getAmount());
         }
 
-        return ProofOfWork.calculateHash(txInContent.toString() + txOutContent.toString());
+        String txContent = txInputContent.toString() + txOutputContent.toString();
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hash = digest.digest(txContent.getBytes());
+        return DatatypeConverter.printHexBinary(hash);
     }
 }
