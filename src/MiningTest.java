@@ -20,58 +20,31 @@ public class MiningTest {
         String data = "Bruh";
         long timestamp = System.currentTimeMillis();
 
-        // TODO: List<Tx> txMemPool;
-        /** Tx should contain:
-         * String senderAddress
-         * String receiverAddress
-         * double amount
-         * String signature
-         */
-
+        // TODO: Given a List of Txs List<Tx>, select max. 30 of them and build a MercleTree (So, we need a merkle tree data structure to contain Txs).
+        // ** Each block have its own Merkle tree
+        // List to store the transaction obj
+        List<Transaction> txMemPool = new ArrayList<>();
+        // TODO: some data should be add into txMemPool...
+        /** txMemPool.add(); */
+        // Also, we need to have the hash val convert by each transaction
+        List<String> txHashPool = new ArrayList<>();
+        // function: calculate the hash with SHA-256
+        for (Transaction tx : txMemPool) {
+            String txHash = ProofOfWork.calculateHash(tx.toString());
+            txHashPool.add(txHash); // put them into txPoolHash
+        }
+        // Then, put txHashPool into merkle tree function and generate
+        MerkleTree merkleTrees = new MerkleTree(txHashPool);
+        merkleTrees.generateMerkleTreeRoot();
+        // get root => data
+        System.out.println("root : " + merkleTrees.getRoot());
 
 
         // declare the First block
         Block firstBlock = ProofOfWork.findBlock(null, 0, previousHash, timestamp, data, diff);
-        blockchain = new Blockchain(firstBlock);
+        blockchain = new Blockchain(firstBlock, localClient);
 
-        // find a valid block
-        while(true){
-            if(blockchain.size()%10==0){
-                diff = ProofOfWork.getDifficulty(blockchain);
-            }
-            // generate new block //TODO: data is merkle root
-            String msg = "BlockChain "+blockchain.size();
-            Block newBlock = generateNextBlock(msg);
-
-            long start = System.currentTimeMillis(); //get start time
-            Block block = ProofOfWork.findBlock(blockchain.get(blockchain.size() - 1), newBlock.getIndex(), newBlock.getPreviousHash(), newBlock.getTimestamp(), newBlock.getData(), newBlock.getDifficulty());
-            //store the block
-            blockchain.add(block);
-            long end = System.currentTimeMillis(); //get end time
-//            System.out.println("New block added to blockchain with hash: " + block.getHash());
-//            System.out.println("Nonce: " + block.getNonce());
-//            System.out.println("running time：" + (end-start) + "ms"); //get running time
-
-            // broadcast the new block
-            localClient.broadcastNewBlock(block);
-
-            // get new addresses
-            if (blockchain.size() % 20 == 0) {
-                localClient.broadcastGetAddr();
-            }
-
-        }
     }
 
-    public static Block generateNextBlock(String blockdata) throws NoSuchAlgorithmException {
-        Block previousBlock= blockchain.get(blockchain.size() - 1);
-        int nextIndex= previousBlock.getIndex() + 1;
-        long nextTimestamp = System.currentTimeMillis() / 1000;
-        String blockData = nextIndex + previousBlock.getHash() + nextTimestamp + blockdata + diff + 0;
-        String nextHash = ProofOfWork.calculateHash(blockData);
-        // new block here
-        Block newBlock = new Block(previousBlock, nextIndex, nextHash, previousBlock.getHash(), nextTimestamp, blockData, diff, 0);
-        return newBlock;
-    }
 
 }

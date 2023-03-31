@@ -10,7 +10,7 @@ public class ProofOfWork {
     private static final int DIFFICULTY_ADJUSTMENT_INTERVAL = 1; //defines how often the difficulty should be adjusted with the increasing or decreasing network hashrate.
 
     // find the next block
-    public static Block findBlock(Block prevBlock, int index, String previousHash, long timestamp, String data, int difficulty) throws NoSuchAlgorithmException {
+    public static Block findBlock(Block prevBlock, int index, String previousHash, long timestamp, String data, int difficulty) {
         int nonce = 0;
 
         while (true) {
@@ -24,8 +24,13 @@ public class ProofOfWork {
     }
 
     // calculate the SHA-256
-    public static String calculateHash(String input) throws NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance(ALGORITHM);
+    public static String calculateHash(String input) {
+        MessageDigest digest = null;
+        try {
+            digest = MessageDigest.getInstance(ALGORITHM);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
         byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
         StringBuilder hash = new StringBuilder();
         for (byte b : hashBytes) {
@@ -66,7 +71,7 @@ public class ProofOfWork {
 
     // determine to change the difficulty and get the latest difficulty
     public static int getDifficulty(Blockchain aBlockChain){
-        Block latestBlock = aBlockChain.get(aBlockChain.size() - 1);
+        Block latestBlock = aBlockChain.getLastBlock();
         if(latestBlock.getIndex() % DIFFICULTY_ADJUSTMENT_INTERVAL == 0 && latestBlock.getIndex() != 0){
             return getAdjustedDifficulty(latestBlock, aBlockChain);
         }else{
