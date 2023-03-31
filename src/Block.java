@@ -1,6 +1,8 @@
 import protocol.datatype.Transaction;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Block implements Serializable {
     private Block prevBlock;
@@ -11,7 +13,9 @@ public class Block implements Serializable {
     private String data;
     private int difficulty; //The difficulty defines how many prefixing zeros the block hash must have, for the block to be valid.
     private int nonce; // default: 0
-    private Transaction[] txs;
+
+//    private Transaction[] txs;
+    private List<Transaction> txs = new ArrayList<>();
 
     public Block(Block prevBlock, int index, String hash, String previousHash, long timestamp, String data, int difficulty, int nonce) {
         this.prevBlock = prevBlock;
@@ -22,6 +26,16 @@ public class Block implements Serializable {
         this.data = data;
         this.difficulty = difficulty;
         this.nonce = nonce;
+    }
+
+    // get Transaction
+    public List<Transaction> getTransactions() {
+        return txs;
+    }
+
+    // set or add Transaction
+    public void setTransactions(Transaction tx) {
+        txs.add(tx);
     }
 
     public int getIndex() {

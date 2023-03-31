@@ -1,9 +1,12 @@
 import protocol.datatype.Transaction;
+import protocol.datatype.TxInput;
+import protocol.datatype.TxOutput;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class MiningTest {
     public static Blockchain blockchain; // store the Block
@@ -45,6 +48,4 @@ public class MiningTest {
         blockchain = new Blockchain(firstBlock, localClient);
 
     }
-
-
 }

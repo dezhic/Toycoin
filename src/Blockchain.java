@@ -1,5 +1,10 @@
+import protocol.datatype.Transaction;
+import protocol.datatype.TxInput;
+import protocol.datatype.TxOutput;
+
 import java.util.HashMap;
 import java.util.Map;
+import static protocol.datatype.ECDSAUtils.*;
 
 public class Blockchain {
 
@@ -112,4 +117,33 @@ public class Blockchain {
 
     // public void loadFromFile(String filename) {
     // }
+
+    //verify the transaction (plz put it anywhere...)
+    public boolean validateTransaction(Transaction tx, Map<String, Block> blockIndex) {
+        // loop through each TxIn and verify it against a previous TxOut
+        for (TxInput txIn : tx.getTxIns()) {
+            // get the previous transaction containing the TxOut
+            Block prevBlock = blockIndex.get(txIn.getPrevTxOutId());
+            if (prevBlock == null) {
+                // previous transaction not found, invalid transaction
+                return false;
+            }
+
+            // loop through each transaction in the previous block and find the TxOut
+            for (Transaction prevTx : prevBlock.getTransactions()) {
+                if (prevTx.getId().equals(txIn.getPrevTxOutIndex())) {
+                    // TxOut found, verify the signature
+                    TxOutput txOut = prevTx.getTxOuts().get(txIn.getPrevTxOutIndex());
+                    String message = tx.getId() + txOut.getValue() + txOut.getScriptPubKey();
+                    // TODO: verify code here
+//                    if (!verifyECDSA(txOut.getScriptPubKey(), txIn.getSignatureScript(), message)) {
+//                        // invalid signature, invalid transaction
+//                        return false;
+//                    }
+                }
+            }
+        }
+        // all TxIns have been validated, transaction is valid
+        return true;
+    }
 }
