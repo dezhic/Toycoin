@@ -2,12 +2,12 @@ package protocol.datatype;
 
 import java.io.Serializable;
 
-public class TxIn implements Serializable {
+public class TxInput implements Serializable {
     private String prevTxOutId;
     private int prevTxOutIndex;
     private String signatureScript;
 
-    public TxIn(String prevTxOutId, int prevTxOutIndex, String signatureScript) {
+    public TxInput(String prevTxOutId, int prevTxOutIndex, String signatureScript) {
         this.prevTxOutId = prevTxOutId;
         this.prevTxOutIndex = prevTxOutIndex;
         this.signatureScript = signatureScript;

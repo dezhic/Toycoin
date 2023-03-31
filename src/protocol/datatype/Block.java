@@ -9,5 +9,5 @@ public class Block implements Serializable {
     private long timestamp;
     private int bits;
     private int nonce;
-    private Tx[] txs;
+    private Transaction[] txs;
 }

@@ -1,4 +1,4 @@
-//import org.apache.commons.codec.binary.Hex;
+package protocol.datatype;//import org.apache.commons.codec.binary.Hex;
 import javax.xml.bind.DatatypeConverter;
 import java.security.*;
 

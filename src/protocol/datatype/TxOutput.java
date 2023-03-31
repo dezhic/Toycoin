@@ -2,11 +2,11 @@ package protocol.datatype;
 
 import java.io.Serializable;
 
-public class TxOut implements Serializable {
+public class TxOutput implements Serializable {
     private long value;
     private String scriptPubKey;
 
-    public TxOut(long value, String scriptPubKey) {
+    public TxOutput(long value, String scriptPubKey) {
         this.value = value;
         this.scriptPubKey = scriptPubKey;
     }

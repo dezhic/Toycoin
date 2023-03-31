@@ -1,4 +1,4 @@
-import protocol.datatype.Tx;
+import protocol.datatype.Transaction;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
