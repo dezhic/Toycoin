@@ -14,14 +14,12 @@ public class MiningTest {
 
     public static void main(String[]args) throws NoSuchAlgorithmException, IOException {
 
-        LocalClient localClient = new LocalClient(null);
+        blockchain = new Blockchain();
+        LocalClient localClient = new LocalClient(blockchain);
         LocalServer localServer = new LocalServer(localClient);
+        blockchain.setLocalClient(localClient);
         localServer.start();
         localClient.initialize();  // localClient needs to initialize AFTER localServer starts!
-        // Block information
-        String previousHash = "0";
-        String data = "Bruh";
-        long timestamp = System.currentTimeMillis();
 
         // TODO: Given a List of Txs List<Tx>, select max. 30 of them and build a MercleTree (So, we need a merkle tree data structure to contain Txs).
         // ** Each block have its own Merkle tree
@@ -38,14 +36,19 @@ public class MiningTest {
         }
         // Then, put txHashPool into merkle tree function and generate
         MerkleTree merkleTrees = new MerkleTree(txHashPool);
-        merkleTrees.generateMerkleTreeRoot();
+//        merkleTrees.generateMerkleTreeRoot();
         // get root => data
-        System.out.println("root : " + merkleTrees.getRoot());
+//        System.out.println("root : " + merkleTrees.getRoot());
 
 
-        // declare the First block
-        Block firstBlock = ProofOfWork.findBlock(null, 0, previousHash, timestamp, data, diff);
-        blockchain = new Blockchain(firstBlock, localClient);
-
+        if (System.getenv("PORT").equals("3888")) {
+            blockchain.generateToAddress(5, "dummy_address");
+        } else if (System.getenv("PORT").equals("3889")) {
+            blockchain.sync();
+        } else {
+            blockchain.sync();
+            blockchain.generateToAddress(2, "dummy_address");
+            blockchain.sync();
+        }
     }
 }

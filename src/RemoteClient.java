@@ -95,6 +95,10 @@ public class RemoteClient extends Thread {
         // check if this is the genesis block
         if (block.getIndex() == 0) {
             System.out.println("Genesis block received");
+            if (localClient.hasBlock(block.getHash())) {
+                System.out.println("Already have genesis block");
+                return;
+            }
             localClient.addBlock(block);
             return;
         }
@@ -138,7 +142,7 @@ public class RemoteClient extends Thread {
 //        Gson gson = new Gson();
 //        System.out.println(gson.toJson(inv));
         List<InventoryItem> inventory = inv.getInventory();
-        Iterator<InventoryItem> iterator = inventory.listIterator(inventory.size());
+        Iterator<InventoryItem> iterator = inventory.iterator();
         // skip already known blocks
         while (iterator.hasNext()) {
             InventoryItem item = iterator.next();
@@ -285,10 +289,22 @@ public class RemoteClient extends Thread {
         // skip headers that are already known
         LinkedList<Header> newHeaders = headers.getHeaders().stream()
                 .filter((header) -> (!localClient.hasBlock(header.getHash()))).collect(Collectors.toCollection(LinkedList::new));
-        // check if new headers are longer than the current chain
-        if (newHeaders.getLast().getIndex() > localClient.getLastBlock().getIndex()) {
+
+        // Longest chain rule
+        if (localClient.getLastBlock() == null) {  // new client
+            // request the new blocks
+            localClient.sendGetData(
+                    localClient.getRemoteServer(socket.getInetAddress().getHostAddress()),
+                    new GetData(newHeaders.stream()
+                            .map((header) -> new InventoryItem(MSG_BLOCK, header.getHash()))
+                            .collect(Collectors.toList())
+                    )
+            );
+
+        } else if (newHeaders.getLast().getIndex() > localClient.getLastBlock().getIndex()) {
+            // when the new headers are longer than the current chain
             // check if the new headers are connected to the current chain
-            if (localClient.hasBlock(newHeaders.getFirst().getPreviousHash())) {
+            if (newHeaders.getFirst().getIndex() == 0 || localClient.hasBlock(newHeaders.getFirst().getPreviousHash())) {
                 // prune the current chain and request the new blocks
                 localClient.prune(newHeaders.getFirst().getPreviousHash());
                 localClient.sendGetData(

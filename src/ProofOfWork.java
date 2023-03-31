@@ -5,8 +5,8 @@ import java.security.NoSuchAlgorithmException;
 
 public class ProofOfWork {
     private static final String ALGORITHM = "SHA-256"; // Hashing algorithm
-    private static final int BLOCK_GENERATION_INTERVAL = 250; // defines how often a block should be found (in ms)
-    private static final int DIFFICULTY_ADJUSTMENT_INTERVAL = 1; //defines how often the difficulty should be adjusted with the increasing or decreasing network hashrate.
+    private static final int BLOCK_GENERATION_INTERVAL = 10000; // defines how often a block should be found (in ms)
+    private static final int DIFFICULTY_ADJUSTMENT_INTERVAL = 10; //defines how often the difficulty should be adjusted with the increasing or decreasing network hashrate.
 
     // find the next block
     public static Block findBlock(Block prevBlock, int index, String previousHash, long timestamp, String data, int difficulty) {

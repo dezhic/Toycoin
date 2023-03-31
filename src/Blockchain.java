@@ -19,11 +19,12 @@ public class Blockchain {
 
     private Map<Integer, Block> blockHeightIndex;
 
-    public Blockchain(Block genesisBlock, LocalClient localClient) {
-        this.lastBlock = genesisBlock;
+    public Blockchain() {
+        this.blockHeightIndex = new HashMap<>();
         this.blockHashIndex = new HashMap<>();
-        blockHashIndex.put(genesisBlock.getHash(), genesisBlock);
-        blockHeightIndex.put(0, genesisBlock);
+    }
+
+    public void setLocalClient(LocalClient localClient) {
         this.localClient = localClient;
     }
 
@@ -35,11 +36,14 @@ public class Blockchain {
         // add genesis block
         if (this.lastBlock == null) {
             this.lastBlock = block;
+            blockHashIndex.put(block.getHash(), block);
+            blockHeightIndex.put(block.getIndex(), block);
             return;
         }
         // check if block is valid
         if (block.getPreviousHash().equals(lastBlock.getHash())) {
             // add block to blockchain
+            block.setPrevBlock(lastBlock);
             lastBlock = block;
             blockHashIndex.put(block.getHash(), block);
             blockHeightIndex.put(block.getIndex(), block);
@@ -81,18 +85,22 @@ public class Blockchain {
         long nextTimestamp = System.currentTimeMillis() / 1000;
         String blockData = nextIndex + previousBlock.getHash() + nextTimestamp + blockdata + diff + 0;
         String nextHash = ProofOfWork.calculateHash(blockData);
-        // new block here
-        Block newBlock = new Block(previousBlock, nextIndex, nextHash, previousBlock.getHash(), nextTimestamp, blockData, previousBlock.getDifficulty(), 0);
+        // new block here, with initial nonce 0. The exact nonce will be found by the proof of work algorithm
+        Block newBlock = new Block(previousBlock, nextIndex, nextHash, previousBlock.getHash(), nextTimestamp, blockData, diff, 0);
         return newBlock;
     }
     public void generateToAddress(int nBlocks, String address) {
+        // if the blockchain is empty, generate a genesis block
+        if (this.size() == 0) {
+            Block firstBlock = ProofOfWork.findBlock(null, 0, "0", System.currentTimeMillis(),
+                    "DUMMY_Coinbase_Tx_MercleRoot", 16);
+            this.add(firstBlock);
+            nBlocks--;
+        }
         // find a valid block
         while(nBlocks > 0) {
             nBlocks--;
-            int diff = 16;  // default difficulty
-            if(this.size()%10==0){
-                diff = ProofOfWork.getDifficulty(this);
-            }
+            int diff = ProofOfWork.getDifficulty(this);
             // generate new block //TODO: data is merkle root
             String msg = "BlockChain "+this.size();
             Block newBlock = generateNextBlock(msg, diff);
@@ -102,9 +110,9 @@ public class Blockchain {
             //store the block
             this.add(block);
             long end = System.currentTimeMillis(); //get end time
-//            System.out.println("New block added to blockchain with hash: " + block.getHash());
-//            System.out.println("Nonce: " + block.getNonce());
-//            System.out.println("running time：" + (end-start) + "ms"); //get running time
+            System.out.println("New block added to blockchain with hash: " + block.getHash());
+            System.out.println("Nonce: " + block.getNonce());
+            System.out.println("running time：" + (end-start) + "ms"); //get running time
 
             // broadcast the new block
             localClient.broadcastNewBlock(block);
@@ -165,7 +173,10 @@ public class Blockchain {
     public synchronized void prune(String hash) {
         Block block = getBlock(hash);
         if (block == null) {
-            System.out.println("Block to prune not found by hash: " + hash);
+            System.out.println("Pruning the entire chain");
+            blockHashIndex.clear();
+            blockHeightIndex.clear();
+            lastBlock = null;
             return;
         }
         int height = block.getIndex();
@@ -174,6 +185,7 @@ public class Blockchain {
             blockHeightIndex.remove(i);
         }
         lastBlock = block;
+        System.out.println("Pruned the chain to height " + height);
     }
 
 
