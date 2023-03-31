@@ -1,6 +1,9 @@
 package protocol.message;
 
-import java.io.Serializable;
+import com.google.gson.Gson;
+import protocol.Payload;
+
+import java.io.*;
 import java.util.List;
 
 /**
@@ -20,7 +23,7 @@ import java.util.List;
  * @see <a href="https://reference.cash/protocol/network/messages/getblocks">Request: Get Blocks (“getblocks”)</a>
  * @see <a href="https://reference.cash/protocol/network/messages/getheaders">Request: Get Headers (“getheaders”)</a>
  */
-public class GetBlocks implements Serializable {
+public class GetBlocks extends Payload implements Externalizable {
     private List<String> locator;
     private String hashStop;
 
@@ -37,4 +40,19 @@ public class GetBlocks implements Serializable {
         return hashStop;
     }
 
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        Gson gson = new Gson();
+        String json = gson.toJson(this);
+        out.writeUTF(json);
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        String json = in.readUTF();
+        Gson gson = new Gson();
+        GetBlocks getBlocks = gson.fromJson(json, GetBlocks.class);
+        this.hashStop = getBlocks.getHashStop();
+        this.locator = getBlocks.getLocator();
+    }
 }

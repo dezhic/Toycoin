@@ -1,5 +1,6 @@
 package network;
 
+import gui.GUI;
 import protocol.Command;
 import protocol.Message;
 import datatype.Block;
@@ -23,9 +24,12 @@ public class LocalClient {
     Blockchain blockchain;
     List<RemoteServer> servers;
 
-    public LocalClient(Blockchain blockchain) throws IOException {
+    GUI gui;
+
+    public LocalClient(Blockchain blockchain, GUI gui) throws IOException {
         this.blockchain = blockchain;
         servers = new LinkedList<>();
+        this.gui = gui;
     }
 
     public void initialize() throws IOException {
@@ -76,7 +80,6 @@ public class LocalClient {
     }
 
     public void broadcastNewBlock(Block block) {
-        Message message = new Message(Command.BLOCK, block);
         for (RemoteServer server : servers) {
             try {
                 InventoryItem item = new InventoryItem(InventoryType.MSG_BLOCK, block.getHash());
@@ -200,6 +203,7 @@ public class LocalClient {
 
     public void addBlock(Block block) {
         blockchain.add(block);
+        gui.updateBlockList(blockchain.getBlockList());
     }
 
     public void prune(String hash) {

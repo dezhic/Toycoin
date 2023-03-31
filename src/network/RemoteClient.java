@@ -39,39 +39,44 @@ public class RemoteClient extends Thread {
     }
 
     private void listen() {
+        ObjectInputStream ois = null;
+        try {
+            ois = new ObjectInputStream(socket.getInputStream());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         while (true) {
             try {
-                ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
                 Message message = (Message) ois.readObject();
                 switch (message.getCommand()) {
                     case INV:
-                        handleInv(message.getPayload());
+                        handleInv(message.getInv());
                         break;
                     case VERSION:
-                        handleVersion(message.getPayload());
+                        handleVersion(message.getVersion());
                         break;
                     case VERACK:
                         break;
                     case GETADDR:
-                        handleGetAddr(message.getPayload());
+                        handleGetAddr();
                         break;
                     case ADDR:
-                        handleAddr(message.getPayload());
+                        handleAddr(message.getAddr());
                         break;
                     case GETDATA:
-                        handleGetData(message.getPayload());
+                        handleGetData(message.getGetData());
                         break;
                     case BLOCK:
-                        handleBlock(message.getPayload());
+                        handleBlock(message.getBlock());
                         break;
                     case GETBLOCKS:
-                        handleGetBlocks(message.getPayload());
+                        handleGetBlocks(message.getGetBlocks());
                         break;
                     case GETHEADERS:
-                        handleGetHeaders(message.getPayload());
+                        handleGetHeaders(message.getGetHeaders());
                         break;
                     case HEADERS:
-                        handleHeaders(message.getPayload());
+                        handleHeaders(message.getHeaders());
                         break;
                     default:
                         throw new Exception("Unknown command: " + message.getCommand());
@@ -110,7 +115,8 @@ public class RemoteClient extends Thread {
             return;
         }
         // check if block is valid
-        if (block.getPreviousHash().equals(localClient.getLastBlock().getHash())) {
+        if (localClient.getLastBlock() == null ||
+                block.getPreviousHash().equals(localClient.getLastBlock().getHash())) {
             // add block to blockchain
             localClient.addBlock(block);
         } else {
@@ -186,7 +192,7 @@ public class RemoteClient extends Thread {
         }
     }
 
-    private void handleGetAddr(Object payload) {
+    private void handleGetAddr() {
         RemoteServer rs = localClient.getRemoteServer(socket.getInetAddress().getHostAddress());
         localClient.sendAddr(rs);
     }
@@ -286,6 +292,7 @@ public class RemoteClient extends Thread {
     }
 
     public void handleHeaders(Object payload) {
+        System.out.println("Received headers from " + socket.getInetAddress().getHostAddress() + ":" + socket.getPort());
         Headers headers = (Headers) payload;
         // skip headers that are already known
         LinkedList<Header> newHeaders = headers.getHeaders().stream()

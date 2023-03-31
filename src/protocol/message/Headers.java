@@ -1,10 +1,13 @@
 package protocol.message;
 
-import java.io.Serializable;
+import java.io.*;
 import java.util.List;
-import datatype.Header;
 
-public class Headers implements Serializable {
+import com.google.gson.Gson;
+import datatype.Header;
+import protocol.Payload;
+
+public class Headers extends Payload implements Externalizable {
 
     List<Header> headers;
 
@@ -16,4 +19,18 @@ public class Headers implements Serializable {
         return headers;
     }
 
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        Gson gson = new Gson();
+        String json = gson.toJson(this);
+        out.writeUTF(json);
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        String json = in.readUTF();
+        Gson gson = new Gson();
+        Headers headers = gson.fromJson(json, Headers.class);
+        this.headers = headers.getHeaders();
+    }
 }

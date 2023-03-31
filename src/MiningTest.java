@@ -1,4 +1,4 @@
-import gui.MainGUI;
+import gui.GUI;
 import network.LocalClient;
 import network.LocalServer;
 import datatype.Blockchain;
@@ -16,11 +16,11 @@ public class MiningTest {
     public static int diff = 12;
 
     public static void main(String[]args) throws NoSuchAlgorithmException, IOException {
-        MainGUI mainGUI = new MainGUI();
-        mainGUI.start();
+        GUI GUI = new GUI(System.getenv("PORT"));
+        GUI.start();
 
         blockchain = new Blockchain();
-        LocalClient localClient = new LocalClient(blockchain);
+        LocalClient localClient = new LocalClient(blockchain, GUI);
         LocalServer localServer = new LocalServer(localClient);
         blockchain.setLocalClient(localClient);
         localServer.start();
@@ -51,8 +51,7 @@ public class MiningTest {
         } else if (System.getenv("PORT").equals("3889")) {
             blockchain.sync();
         } else {
-            blockchain.sync();
-            blockchain.generateToAddress(2, "dummy_address");
+            blockchain.generateToAddress(3, "dummy_address");
             blockchain.sync();
         }
     }

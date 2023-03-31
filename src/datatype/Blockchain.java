@@ -4,10 +4,8 @@ import network.LocalClient;
 import protocol.message.GetBlocks;
 import util.ProofOfWork;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Blockchain {
 
@@ -31,13 +29,13 @@ public class Blockchain {
 
     }
 
-    public synchronized void add(Block block) {
+    public synchronized boolean add(Block block) {
         // add genesis block
         if (this.lastBlock == null) {
             this.lastBlock = block;
             blockHashIndex.put(block.getHash(), block);
             blockHeightIndex.put(block.getIndex(), block);
-            return;
+            return true;
         }
         // check if block is valid
         if (block.getPreviousHash().equals(lastBlock.getHash())) {
@@ -46,8 +44,10 @@ public class Blockchain {
             lastBlock = block;
             blockHashIndex.put(block.getHash(), block);
             blockHeightIndex.put(block.getIndex(), block);
+            return true;
         } else {
-            throw new IllegalArgumentException("datatype.Block is not valid");
+            System.out.println("Previous hash mismatch. Block adding failed");
+            return false;
         }
     }
 
@@ -78,7 +78,7 @@ public class Blockchain {
     }
 
 
-    public Block generateNextBlock(String blockdata, int diff) {
+    private Block generateNextBlock(String blockdata, int diff) {
         Block previousBlock= this.getBlock(this.size() - 1);
         int nextIndex= previousBlock.getIndex() + 1;
         long nextTimestamp = System.currentTimeMillis() / 1000;
@@ -88,12 +88,12 @@ public class Blockchain {
         Block newBlock = new Block(previousBlock, nextIndex, nextHash, previousBlock.getHash(), nextTimestamp, blockData, diff, 0);
         return newBlock;
     }
-    public void generateToAddress(int nBlocks, String address) {
+    public synchronized void generateToAddress(int nBlocks, String address) {
         // if the blockchain is empty, generate a genesis block
         if (this.size() == 0) {
             Block firstBlock = ProofOfWork.findBlock(null, 0, "0", System.currentTimeMillis(),
                     "DUMMY_Coinbase_Tx_MercleRoot", 16);
-            this.add(firstBlock);
+            localClient.addBlock(firstBlock);  // calling localClient for updating GUI
             nBlocks--;
         }
         // find a valid block
@@ -107,7 +107,7 @@ public class Blockchain {
             long start = System.currentTimeMillis(); //get start time
             Block block = ProofOfWork.findBlock(this.getBlock(this.size() - 1), newBlock.getIndex(), newBlock.getPreviousHash(), newBlock.getTimestamp(), newBlock.getData(), newBlock.getDifficulty());
             //store the block
-            this.add(block);
+            localClient.addBlock(block);  // calling localClient for updating GUI
             long end = System.currentTimeMillis(); //get end time
             System.out.println("New block added to blockchain with hash: " + block.getHash());
             System.out.println("Nonce: " + block.getNonce());
@@ -146,6 +146,9 @@ public class Blockchain {
      */
     private synchronized List<String> constructLocator() {
         List<String> locator = new LinkedList<>();
+        if (blockHeightIndex.get(0) == null) {  // no genesis block
+            return locator;
+        }
         Block current = lastBlock;
         int step = 1;
         while (current != null) {
@@ -185,6 +188,13 @@ public class Blockchain {
         }
         lastBlock = block;
         System.out.println("Pruned the chain to height " + height);
+    }
+
+    public List<Block> getBlockList() {
+        return blockHeightIndex.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
     }
 
 
