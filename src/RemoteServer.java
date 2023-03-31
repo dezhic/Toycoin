@@ -1,13 +1,11 @@
 import protocol.Command;
 import protocol.Message;
-import protocol.datatype.InventoryItem;
-import protocol.datatype.InventoryType;
+import protocol.datatype.Block;
 import protocol.message.*;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.Collections;
 
 public class RemoteServer {
     private Socket socket;

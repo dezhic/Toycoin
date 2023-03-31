@@ -1,12 +1,11 @@
-import com.google.gson.Gson;
 import protocol.Message;
+import protocol.datatype.Block;
 import protocol.datatype.Header;
 import protocol.datatype.InventoryItem;
 import protocol.message.*;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.Serializable;
 import java.net.Socket;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -113,7 +112,7 @@ public class RemoteClient extends Thread {
             // add block to blockchain
             localClient.addBlock(block);
         } else {
-            System.out.println("Block is not valid");
+            System.out.println("protocol.datatype.Block is not valid");
         }
     }
 

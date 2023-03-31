@@ -1,3 +1,4 @@
+import protocol.datatype.Block;
 import protocol.message.GetBlocks;
 
 import protocol.datatype.Transaction;
@@ -8,7 +9,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import static protocol.datatype.ECDSAUtils.*;
 
 public class Blockchain {
 
@@ -48,7 +48,7 @@ public class Blockchain {
             blockHashIndex.put(block.getHash(), block);
             blockHeightIndex.put(block.getIndex(), block);
         } else {
-            throw new IllegalArgumentException("Block is not valid");
+            throw new IllegalArgumentException("protocol.datatype.Block is not valid");
         }
     }
 

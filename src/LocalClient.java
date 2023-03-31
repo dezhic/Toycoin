@@ -1,5 +1,6 @@
 import protocol.Command;
 import protocol.Message;
+import protocol.datatype.Block;
 import protocol.datatype.InventoryItem;
 import protocol.datatype.InventoryType;
 import protocol.message.*;
