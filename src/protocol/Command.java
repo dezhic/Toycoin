@@ -10,6 +10,7 @@ import java.io.Serializable;
 public enum Command implements Serializable {
     VERSION, VERACK,
     GETADDR, ADDR,
+    GETHEADERS, HEADERS,
     GETBLOCKS, INV,
     GETDATA, BLOCK, TX, NOTFOUND
 }

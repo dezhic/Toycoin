@@ -1,8 +1,12 @@
+import protocol.message.GetBlocks;
+
 import protocol.datatype.Transaction;
 import protocol.datatype.TxInput;
 import protocol.datatype.TxOutput;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import static protocol.datatype.ECDSAUtils.*;
 
@@ -27,7 +31,12 @@ public class Blockchain {
 
     }
 
-    public void add(Block block) {
+    public synchronized void add(Block block) {
+        // add genesis block
+        if (this.lastBlock == null) {
+            this.lastBlock = block;
+            return;
+        }
         // check if block is valid
         if (block.getPreviousHash().equals(lastBlock.getHash())) {
             // add block to blockchain
@@ -39,8 +48,8 @@ public class Blockchain {
         }
     }
 
-    public int size() {
-        return 0;
+    public synchronized int size() {
+        return blockHeightIndex.size();
     }
 
     /**
@@ -48,11 +57,11 @@ public class Blockchain {
      * @param height
      * @return
      */
-    public Block getBlock(int height) {
+    public synchronized Block getBlock(int height) {
         return blockHeightIndex.get(height);
     }
 
-    public boolean hasBlock(String hash) {
+    public synchronized boolean hasBlock(String hash) {
         return blockHashIndex.containsKey(hash);
     }
 
@@ -61,7 +70,7 @@ public class Blockchain {
      * @param hash hash of the block
      * @return the target block, or null
      */
-    public Block getBlock(String hash) {
+    public synchronized Block getBlock(String hash) {
         return blockHashIndex.get(hash);
     }
 
@@ -108,9 +117,65 @@ public class Blockchain {
         }
     }
 
-    public Block getLastBlock() {
+    public synchronized Block getLastBlock() {
         return lastBlock;
     }
+
+    public void sync() {
+        List<String> locator = constructLocator();
+        GetBlocks getBlocks = new GetBlocks(locator, null);
+        localClient.broadcastGetBlocks(getBlocks);
+    }
+
+
+    /**
+     * <p>To create the block locator hashes, keep pushing hashes until you go back to the genesis block.
+     * After pushing 10 hashes back, the step backwards doubles every loop</p>
+     *
+     * <p>If there is no genesis block, return an empty list</p>
+     *
+     * @see <a href="https://en.bitcoin.it/wiki/Protocol_documentation#getblocks">getblocks</a>
+     * @return the list of block locator hashes
+     */
+    private synchronized List<String> constructLocator() {
+        List<String> locator = new LinkedList<>();
+        Block current = lastBlock;
+        int step = 1;
+        while (current != null) {
+            locator.add(current.getHash());
+            if (locator.size() > 10) {
+                step *= 2;
+            }
+            for (int i = 0; i < step && current != null; i++) {
+                current = getBlock(current.getPreviousHash());
+            }
+        }
+        // add the genesis block
+        if (blockHeightIndex.get(0) != null && !locator.contains(blockHeightIndex.get(0).getHash())) {
+            locator.add(blockHeightIndex.get(0).getHash());
+        }
+        return locator;
+    }
+
+    /**
+     * Prune the blockchain to the given block hash.
+     * The block with the given hash will be the last block afterwards.
+     * @param hash the hash of the block to prune to
+     */
+    public synchronized void prune(String hash) {
+        Block block = getBlock(hash);
+        if (block == null) {
+            System.out.println("Block to prune not found by hash: " + hash);
+            return;
+        }
+        int height = block.getIndex();
+        for (int i = height; i < size(); i++) {
+            blockHashIndex.remove(blockHeightIndex.get(i).getHash());
+            blockHeightIndex.remove(i);
+        }
+        lastBlock = block;
+    }
+
 
     // public void storeToFile(String filename) {
     // }

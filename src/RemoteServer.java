@@ -71,6 +71,20 @@ public class RemoteServer {
         System.out.println("Sent getblocks to " + socket.getInetAddress() + ":" + socket.getPort());
     }
 
+    public void sendGetHeaders(GetHeaders getHeaders) throws IOException {
+        Message message = new Message(Command.GETHEADERS, getHeaders);
+        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+        oos.writeObject(message);
+        System.out.println("Sent getheaders to " + socket.getInetAddress() + ":" + socket.getPort());
+    }
+
+    public void sendHeaders(Headers headers) throws IOException {
+        Message message = new Message(Command.HEADERS, headers);
+        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+        oos.writeObject(message);
+        System.out.println("Sent headers to " + socket.getInetAddress() + ":" + socket.getPort());
+    }
+
     public Socket getSocket() {
         return socket;
     }

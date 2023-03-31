@@ -1,5 +1,6 @@
 import com.google.gson.Gson;
 import protocol.Message;
+import protocol.datatype.Header;
 import protocol.datatype.InventoryItem;
 import protocol.message.*;
 
@@ -7,9 +8,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.net.Socket;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static protocol.datatype.InventoryType.MSG_BLOCK;
 import static protocol.datatype.InventoryType.MSG_TX;
@@ -66,6 +66,12 @@ public class RemoteClient extends Thread {
                     case GETBLOCKS:
                         handleGetBlocks(message.getPayload());
                         break;
+                    case GETHEADERS:
+                        handleGetHeaders(message.getPayload());
+                        break;
+                    case HEADERS:
+                        handleHeaders(message.getPayload());
+                        break;
                     default:
                         throw new Exception("Unknown command: " + message.getCommand());
                 }
@@ -86,10 +92,27 @@ public class RemoteClient extends Thread {
 
     private void handleBlock(Object payload) {
         Block block = (Block) payload;
-//        localClient.addBlock(block);
-        // TODO: pause mining to compare
-        //   if block is better, stop mining and start mining on the new block
+        // check if this is the genesis block
+        if (block.getIndex() == 0) {
+            System.out.println("Genesis block received");
+            localClient.addBlock(block);
+            return;
+        }
+
+        // check if block already exists
+        if (localClient.hasBlock(block.getHash())) {
+            System.out.println("Already have block " + block.getHash());
+            return;
+        }
+        // check if block is valid
+        if (block.getPreviousHash().equals(localClient.getLastBlock().getHash())) {
+            // add block to blockchain
+            localClient.addBlock(block);
+        } else {
+            System.out.println("Block is not valid");
+        }
     }
+
 
     private void handleGetData(Object payload) {
         GetData getData = (GetData) payload;
@@ -115,16 +138,29 @@ public class RemoteClient extends Thread {
 //        Gson gson = new Gson();
 //        System.out.println(gson.toJson(inv));
         List<InventoryItem> inventory = inv.getInventory();
-        for (InventoryItem item : inventory) {
+        Iterator<InventoryItem> iterator = inventory.listIterator(inventory.size());
+        // skip already known blocks
+        while (iterator.hasNext()) {
+            InventoryItem item = iterator.next();
             if (item.getType() == MSG_BLOCK) {
                 // check if we have the block
                 if (localClient.hasBlock(item.getHash())) {
                     System.out.println("Already have block " + item.getHash());
-                    continue;
+                } else {
+                    // request block headers for the rest
+                    List<String> locator = new LinkedList<>();
+                    locator.add(item.getHash());
+                    while (iterator.hasNext()) {
+                        item = iterator.next();
+                        if (item.getType() == MSG_BLOCK) {
+                            locator.add(item.getHash());
+                        }
+                    }
+                    GetHeaders getHeaders = new GetHeaders(locator, null);
+                    localClient.sendGetHeaders(localClient.getRemoteServer(socket.getInetAddress().getHostAddress()), getHeaders);
+
                 }
-                System.out.println("Requesting block " + item.getHash());
-                localClient.sendGetData(localClient.getRemoteServer(socket.getInetAddress().getHostAddress()),
-                        new GetData(Collections.singletonList(item)));
+
             } else if (item.getType() == MSG_TX) {
                 // TODO
 //                localClient.sendGetData(socket.getInetAddress().getHostAddress(), item.getHash());
@@ -197,11 +233,77 @@ public class RemoteClient extends Thread {
             break;
         }
         // locator not found, return the genesis block
-        if (inventory.isEmpty()) {
+        if (inventory.isEmpty() && localClient.getBlock(0) != null) {
             inventory.add(new InventoryItem(MSG_BLOCK, localClient.getBlock(0).getHash()));
         }
 
         localClient.sendInv(localClient.getRemoteServer(socket.getInetAddress().getHostAddress()), new Inv(inventory));
+
+    }
+
+    private void handleGetHeaders(Object payload) {
+        GetHeaders getHeaders = (GetHeaders) payload;
+        List<String> locator = getHeaders.getLocator();
+        String hashStop = getHeaders.getHashStop();
+        List<Block> blocks = new LinkedList<>();
+
+        // return the list of blocks starting right after the last known hash in the block locator object,
+        // up to hash_stop or 2000 blocks, whichever comes first.
+        for (String hash : locator) {
+            if (localClient.hasBlock(hash)) {
+                Block block = localClient.getBlock(hash);
+                while (block != null && !block.getHash().equals(hashStop) && blocks.size() < 2000) {
+                    blocks.add(block);
+                    block = localClient.getBlock(block.getIndex() + 1);
+                }
+            }
+            break;
+        }
+        // locator not found, return the genesis block
+        if (blocks.isEmpty() && localClient.getBlock(0) != null) {
+            blocks.add(localClient.getBlock(0));
+        }
+
+        List<Header> headers = blocks.stream().map((block ->
+            new Header(
+                    block.getIndex(),
+                    block.getHash(),
+                    block.getPreviousHash(),
+                    block.getTimestamp(),
+                    block.getData(),
+                    block.getDifficulty(),
+                    block.getNonce()
+            )
+        )).collect(Collectors.toList());
+
+        localClient.sendHeaders(localClient.getRemoteServer(socket.getInetAddress().getHostAddress()), new Headers(headers));
+
+    }
+
+    public void handleHeaders(Object payload) {
+        Headers headers = (Headers) payload;
+        // skip headers that are already known
+        LinkedList<Header> newHeaders = headers.getHeaders().stream()
+                .filter((header) -> (!localClient.hasBlock(header.getHash()))).collect(Collectors.toCollection(LinkedList::new));
+        // check if new headers are longer than the current chain
+        if (newHeaders.getLast().getIndex() > localClient.getLastBlock().getIndex()) {
+            // check if the new headers are connected to the current chain
+            if (localClient.hasBlock(newHeaders.getFirst().getPreviousHash())) {
+                // prune the current chain and request the new blocks
+                localClient.prune(newHeaders.getFirst().getPreviousHash());
+                localClient.sendGetData(
+                        localClient.getRemoteServer(socket.getInetAddress().getHostAddress()),
+                        new GetData(newHeaders.stream()
+                                .map((header) -> new InventoryItem(MSG_BLOCK, header.getHash()))
+                                .collect(Collectors.toList())
+                        )
+                );
+            } else {
+                // request the headers from the last known block
+                localClient.sendGetHeaders(localClient.getRemoteServer(socket.getInetAddress().getHostAddress()),
+                        new GetHeaders(Collections.singletonList(localClient.getLastBlock().getHash()), null));
+            }
+        }
 
     }
 

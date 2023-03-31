@@ -1,4 +1,3 @@
-import com.sun.org.apache.xml.internal.security.algorithms.implementations.ECDSAUtils;
 import protocol.datatype.Transaction;
 import protocol.datatype.TxInput;
 import protocol.datatype.TxOutput;
@@ -9,7 +8,6 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.sun.org.apache.xml.internal.security.algorithms.implementations.ECDSAUtils.*;
 import static protocol.datatype.ECDSAUtils.*;
 
 public class TransactionTest {

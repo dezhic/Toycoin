@@ -24,6 +24,11 @@ public class GetBlocks implements Serializable {
     private List<String> locator;
     private String hashStop;
 
+    public GetBlocks(List<String> locator, String hashStop) {
+        this.locator = locator;
+        this.hashStop = hashStop;
+    }
+
     public List<String> getLocator() {
         return locator;
     }

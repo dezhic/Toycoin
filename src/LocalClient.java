@@ -125,12 +125,14 @@ public class LocalClient {
         }
     }
 
-    public void sendGetBlocks(RemoteServer rs, GetBlocks getBlocks) {
-        try {
-            rs.sendGetBlocks(getBlocks);
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Could not send getblocks to " + rs.getSocket().getInetAddress().getHostAddress() + ":" + rs.getSocket().getPort());
+    public void broadcastGetBlocks(GetBlocks getBlocks) {
+        for (RemoteServer server : servers) {
+            try {
+                server.sendGetBlocks(getBlocks);
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("Could not send getblocks to " + server.getSocket().getInetAddress().getHostAddress() + ":" + server.getSocket().getPort());
+            }
         }
     }
 
@@ -140,6 +142,24 @@ public class LocalClient {
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Could not send inv to " + rs.getSocket().getInetAddress().getHostAddress() + ":" + rs.getSocket().getPort());
+        }
+    }
+
+    public void sendGetHeaders(RemoteServer rs, GetHeaders getHeaders) {
+        try {
+            rs.sendGetHeaders(getHeaders);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Could not send getheaders to " + rs.getSocket().getInetAddress().getHostAddress() + ":" + rs.getSocket().getPort());
+        }
+    }
+
+    public void sendHeaders(RemoteServer rs, Headers headers) {
+        try {
+            rs.sendHeaders(headers);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Could not send headers to " + rs.getSocket().getInetAddress().getHostAddress() + ":" + rs.getSocket().getPort());
         }
     }
 
@@ -174,5 +194,16 @@ public class LocalClient {
         return null;
     }
 
+    public void addBlock(Block block) {
+        blockchain.add(block);
+    }
+
+    public void prune(String hash) {
+        blockchain.prune(hash);
+    }
+
+    public Block getLastBlock() {
+        return blockchain.getLastBlock();
+    }
 
 }
