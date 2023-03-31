@@ -20,6 +20,16 @@ public class MiningTest {
         String data = "Bruh";
         long timestamp = System.currentTimeMillis();
 
+        // TODO: List<Tx> txMemPool;
+        /** Tx should contain:
+         * String senderAddress
+         * String receiverAddress
+         * double amount
+         * String signature
+         */
+
+
+
         // declare the First block
         Block firstBlock = ProofOfWork.findBlock(null, 0, previousHash, timestamp, data, diff);
         blockchain = new Blockchain(firstBlock);
@@ -29,7 +39,7 @@ public class MiningTest {
             if(blockchain.size()%10==0){
                 diff = ProofOfWork.getDifficulty(blockchain);
             }
-            // generate new block
+            // generate new block //TODO: data is merkle root
             String msg = "BlockChain "+blockchain.size();
             Block newBlock = generateNextBlock(msg);
 
