@@ -2,7 +2,7 @@ package protocol.message;
 
 import java.io.Serializable;
 import java.util.List;
-import protocol.datatype.Header;
+import datatype.Header;
 
 public class Headers implements Serializable {
 

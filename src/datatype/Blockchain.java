@@ -1,9 +1,8 @@
-import protocol.datatype.Block;
-import protocol.message.GetBlocks;
+package datatype;
 
-import protocol.datatype.Transaction;
-import protocol.datatype.TxInput;
-import protocol.datatype.TxOutput;
+import network.LocalClient;
+import protocol.message.GetBlocks;
+import util.ProofOfWork;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -48,7 +47,7 @@ public class Blockchain {
             blockHashIndex.put(block.getHash(), block);
             blockHeightIndex.put(block.getIndex(), block);
         } else {
-            throw new IllegalArgumentException("protocol.datatype.Block is not valid");
+            throw new IllegalArgumentException("datatype.Block is not valid");
         }
     }
 

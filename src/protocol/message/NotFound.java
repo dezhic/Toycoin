@@ -1,6 +1,6 @@
 package protocol.message;
 
-import protocol.datatype.InventoryItem;
+import datatype.InventoryItem;
 
 import java.io.Serializable;
 import java.util.List;

@@ -1,18 +1,23 @@
-import protocol.datatype.Transaction;
-import protocol.datatype.TxInput;
-import protocol.datatype.TxOutput;
+import gui.MainGUI;
+import network.LocalClient;
+import network.LocalServer;
+import datatype.Blockchain;
+import datatype.MerkleTree;
+import datatype.Transaction;
+import util.ProofOfWork;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class MiningTest {
     public static Blockchain blockchain; // store the Block
     public static int diff = 12;
 
     public static void main(String[]args) throws NoSuchAlgorithmException, IOException {
+        MainGUI mainGUI = new MainGUI();
+        mainGUI.start();
 
         blockchain = new Blockchain();
         LocalClient localClient = new LocalClient(blockchain);

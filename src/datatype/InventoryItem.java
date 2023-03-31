@@ -1,4 +1,4 @@
-package protocol.datatype;
+package datatype;
 
 import java.io.Serializable;
 

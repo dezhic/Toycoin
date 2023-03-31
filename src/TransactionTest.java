@@ -1,6 +1,6 @@
-import protocol.datatype.Transaction;
-import protocol.datatype.TxInput;
-import protocol.datatype.TxOutput;
+import datatype.Transaction;
+import datatype.TxInput;
+import datatype.TxOutput;
 
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -8,7 +8,7 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 
-import static protocol.datatype.ECDSAUtils.*;
+import static util.ECDSAUtils.*;
 
 public class TransactionTest {
     public static void main(String[] args) throws Exception {

@@ -1,6 +1,8 @@
+package network;
+
 import protocol.Command;
 import protocol.Message;
-import protocol.datatype.Block;
+import datatype.Block;
 import protocol.message.*;
 
 import java.io.IOException;

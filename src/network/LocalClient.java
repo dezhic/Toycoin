@@ -1,8 +1,11 @@
+package network;
+
 import protocol.Command;
 import protocol.Message;
-import protocol.datatype.Block;
-import protocol.datatype.InventoryItem;
-import protocol.datatype.InventoryType;
+import datatype.Block;
+import datatype.Blockchain;
+import datatype.InventoryItem;
+import datatype.InventoryType;
 import protocol.message.*;
 
 import java.io.File;

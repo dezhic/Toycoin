@@ -1,7 +1,9 @@
+package network;
+
 import protocol.Message;
-import protocol.datatype.Block;
-import protocol.datatype.Header;
-import protocol.datatype.InventoryItem;
+import datatype.Block;
+import datatype.Header;
+import datatype.InventoryItem;
 import protocol.message.*;
 
 import java.io.IOException;
@@ -10,8 +12,8 @@ import java.net.Socket;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static protocol.datatype.InventoryType.MSG_BLOCK;
-import static protocol.datatype.InventoryType.MSG_TX;
+import static datatype.InventoryType.MSG_BLOCK;
+import static datatype.InventoryType.MSG_TX;
 
 /**
  * This is the class that will be <b>used by the server</b> to handle the client
@@ -112,7 +114,7 @@ public class RemoteClient extends Thread {
             // add block to blockchain
             localClient.addBlock(block);
         } else {
-            System.out.println("protocol.datatype.Block is not valid");
+            System.out.println("datatype.Block is not valid");
         }
     }
 

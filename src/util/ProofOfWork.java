@@ -1,4 +1,7 @@
-import protocol.datatype.Block;
+package util;
+
+import datatype.Block;
+import datatype.Blockchain;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
