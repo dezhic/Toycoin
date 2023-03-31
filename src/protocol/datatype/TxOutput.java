@@ -1,14 +1,15 @@
 package protocol.datatype;
 
 import java.io.Serializable;
+import java.security.PublicKey;
 
 public class TxOutput implements Serializable {
     private long value;
     private String scriptPubKey;
 
-    public TxOutput(long value, String scriptPubKey) {
+    public TxOutput(long value, PublicKey scriptPubKey) {
         this.value = value;
-        this.scriptPubKey = scriptPubKey;
+        this.scriptPubKey = String.valueOf(scriptPubKey);
     }
 
     public long getValue() {
