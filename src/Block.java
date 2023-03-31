@@ -1,3 +1,5 @@
+import protocol.datatype.Transaction;
+
 import java.io.Serializable;
 
 public class Block implements Serializable {
@@ -9,6 +11,7 @@ public class Block implements Serializable {
     private String data;
     private int difficulty; //The difficulty defines how many prefixing zeros the block hash must have, for the block to be valid.
     private int nonce; // default: 0
+    private Transaction[] txs;
 
     public Block(Block prevBlock, int index, String hash, String previousHash, long timestamp, String data, int difficulty, int nonce) {
         this.prevBlock = prevBlock;
