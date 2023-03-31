@@ -189,9 +189,9 @@ public class RemoteClient extends Thread {
         for (String hash : locator) {
             if (localClient.hasBlock(hash)) {
                 Block block = localClient.getBlock(hash);
-                while (!block.getPreviousHash().equals(hashStop) && inventory.size() < 500) {
-                    inventory.add(new InventoryItem(MSG_BLOCK, block.getPreviousHash()));
-                    block = block.getPrevBlock();
+                while (block != null && !block.getHash().equals(hashStop) && inventory.size() < 500) {
+                    inventory.add(new InventoryItem(MSG_BLOCK, block.getHash()));
+                    block = localClient.getBlock(block.getIndex() + 1);
                 }
             }
             break;
