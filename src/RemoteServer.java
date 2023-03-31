@@ -2,10 +2,7 @@ import protocol.Command;
 import protocol.Message;
 import protocol.datatype.InventoryItem;
 import protocol.datatype.InventoryType;
-import protocol.message.Addr;
-import protocol.message.GetData;
-import protocol.message.Inv;
-import protocol.message.Version;
+import protocol.message.*;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -19,9 +16,7 @@ public class RemoteServer {
         this.socket = socket;
     }
 
-    public void sendBlockInv(Block block) throws IOException {
-        InventoryItem item = new InventoryItem(InventoryType.MSG_BLOCK, block.getHash());
-        Inv inv = new Inv(Collections.singletonList(item));
+    public void sendInv(Inv inv) throws IOException {
         Message msg = new Message(Command.INV, inv);
         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
         oos.writeObject(msg);
@@ -67,6 +62,13 @@ public class RemoteServer {
         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
         oos.writeObject(message);
         System.out.println("Sent block to " + socket.getInetAddress() + ":" + socket.getPort());
+    }
+
+    public void sendGetBlocks(GetBlocks getBlocks) throws IOException {
+        Message message = new Message(Command.GETBLOCKS, getBlocks);
+        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+        oos.writeObject(message);
+        System.out.println("Sent getblocks to " + socket.getInetAddress() + ":" + socket.getPort());
     }
 
     public Socket getSocket() {

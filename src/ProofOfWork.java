@@ -2,7 +2,6 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 
 public class ProofOfWork {
     private static final String ALGORITHM = "SHA-256"; // Hashing algorithm
@@ -81,7 +80,7 @@ public class ProofOfWork {
 
     // get the Adjusted difficulty value
     private static int getAdjustedDifficulty(Block latestBlock, Blockchain aBlockChain){
-        Block prevAdjustmentBlock = aBlockChain.get(aBlockChain.size() - DIFFICULTY_ADJUSTMENT_INTERVAL);
+        Block prevAdjustmentBlock = aBlockChain.getBlock(aBlockChain.size() - DIFFICULTY_ADJUSTMENT_INTERVAL);
         long timeExpected = BLOCK_GENERATION_INTERVAL * DIFFICULTY_ADJUSTMENT_INTERVAL;
         long timeTaken = latestBlock.getTimestamp() - prevAdjustmentBlock.getTimestamp();
         if (timeTaken < timeExpected / 2) {

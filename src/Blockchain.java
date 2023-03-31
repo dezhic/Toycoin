@@ -1,6 +1,4 @@
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Blockchain {
@@ -8,12 +6,15 @@ public class Blockchain {
     LocalClient localClient;
     private Block lastBlock;
 
-    private Map<String, Block> blockIndex;
+    private Map<String, Block> blockHashIndex;
+
+    private Map<Integer, Block> blockHeightIndex;
 
     public Blockchain(Block genesisBlock, LocalClient localClient) {
         this.lastBlock = genesisBlock;
-        this.blockIndex = new HashMap<>();
-        blockIndex.put(genesisBlock.getHash(), genesisBlock);
+        this.blockHashIndex = new HashMap<>();
+        blockHashIndex.put(genesisBlock.getHash(), genesisBlock);
+        blockHeightIndex.put(0, genesisBlock);
         this.localClient = localClient;
     }
 
@@ -26,7 +27,8 @@ public class Blockchain {
         if (block.getPreviousHash().equals(lastBlock.getHash())) {
             // add block to blockchain
             lastBlock = block;
-            blockIndex.put(block.getHash(), block);
+            blockHashIndex.put(block.getHash(), block);
+            blockHeightIndex.put(block.getIndex(), block);
         } else {
             throw new IllegalArgumentException("Block is not valid");
         }
@@ -36,20 +38,31 @@ public class Blockchain {
         return 0;
     }
 
-    public Block get(int height) {
-        return null;
+    /**
+     * Get block by height (0-based)
+     * @param height
+     * @return
+     */
+    public Block getBlock(int height) {
+        return blockHeightIndex.get(height);
     }
 
     public boolean hasBlock(String hash) {
-        return blockIndex.containsKey(hash);
+        return blockHashIndex.containsKey(hash);
     }
 
+    /**
+     * Get block by its hash
+     * @param hash hash of the block
+     * @return the target block, or null
+     */
     public Block getBlock(String hash) {
-        return blockIndex.get(hash);
+        return blockHashIndex.get(hash);
     }
+
 
     public Block generateNextBlock(String blockdata, int diff) {
-        Block previousBlock= this.get(this.size() - 1);
+        Block previousBlock= this.getBlock(this.size() - 1);
         int nextIndex= previousBlock.getIndex() + 1;
         long nextTimestamp = System.currentTimeMillis() / 1000;
         String blockData = nextIndex + previousBlock.getHash() + nextTimestamp + blockdata + diff + 0;
@@ -71,7 +84,7 @@ public class Blockchain {
             Block newBlock = generateNextBlock(msg, diff);
 
             long start = System.currentTimeMillis(); //get start time
-            Block block = ProofOfWork.findBlock(this.get(this.size() - 1), newBlock.getIndex(), newBlock.getPreviousHash(), newBlock.getTimestamp(), newBlock.getData(), newBlock.getDifficulty());
+            Block block = ProofOfWork.findBlock(this.getBlock(this.size() - 1), newBlock.getIndex(), newBlock.getPreviousHash(), newBlock.getTimestamp(), newBlock.getData(), newBlock.getDifficulty());
             //store the block
             this.add(block);
             long end = System.currentTimeMillis(); //get end time

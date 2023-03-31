@@ -1,12 +1,13 @@
 import protocol.Command;
 import protocol.Message;
-import protocol.message.Addr;
-import protocol.message.GetData;
-import protocol.message.Version;
+import protocol.datatype.InventoryItem;
+import protocol.datatype.InventoryType;
+import protocol.message.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
@@ -74,7 +75,9 @@ public class LocalClient {
         Message message = new Message(Command.BLOCK, block);
         for (RemoteServer server : servers) {
             try {
-                server.sendBlockInv(block);
+                InventoryItem item = new InventoryItem(InventoryType.MSG_BLOCK, block.getHash());
+                Inv inv = new Inv(Collections.singletonList(item));
+                server.sendInv(inv);
             } catch (IOException e) {
                 System.out.println("Could not send block to " + server.getSocket().getInetAddress().getHostAddress() + ":" + server.getSocket().getPort());
                 servers.remove(server);
@@ -122,12 +125,44 @@ public class LocalClient {
         }
     }
 
+    public void sendGetBlocks(RemoteServer rs, GetBlocks getBlocks) {
+        try {
+            rs.sendGetBlocks(getBlocks);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Could not send getblocks to " + rs.getSocket().getInetAddress().getHostAddress() + ":" + rs.getSocket().getPort());
+        }
+    }
+
+    public void sendInv(RemoteServer rs, Inv inv) {
+        try {
+            rs.sendInv(inv);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Could not send inv to " + rs.getSocket().getInetAddress().getHostAddress() + ":" + rs.getSocket().getPort());
+        }
+    }
+
     public boolean hasBlock(String hash) {
         return blockchain.hasBlock(hash);
     }
 
+    /**
+     * Get block by its hash
+     * @param hash hash of the block
+     * @return the target block, or null
+     */
     public Block getBlock(String hash) {
         return blockchain.getBlock(hash);
+    }
+
+    /**
+     * Get block by its height
+     * @param height height of the block
+     * @return the target block, or null
+     */
+    public Block getBlock(int height) {
+        return blockchain.getBlock(height);
     }
 
     RemoteServer getRemoteServer(String host) {

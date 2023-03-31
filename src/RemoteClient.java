@@ -1,16 +1,14 @@
 import com.google.gson.Gson;
 import protocol.Message;
 import protocol.datatype.InventoryItem;
-import protocol.message.Addr;
-import protocol.message.GetData;
-import protocol.message.Inv;
-import protocol.message.Version;
+import protocol.message.*;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.net.Socket;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import static protocol.datatype.InventoryType.MSG_BLOCK;
@@ -64,6 +62,9 @@ public class RemoteClient extends Thread {
                         break;
                     case BLOCK:
                         handleBlock(message.getPayload());
+                        break;
+                    case GETBLOCKS:
+                        handleGetBlocks(message.getPayload());
                         break;
                     default:
                         throw new Exception("Unknown command: " + message.getCommand());
@@ -168,6 +169,40 @@ public class RemoteClient extends Thread {
                 System.out.println("Cannot connect to " + address + " when sending addr");
             }
         }
+    }
+
+    /**
+     * Return an inv packet containing the list of blocks starting right after the last known hash in the block locator object, up to hash_stop or 500 blocks, whichever comes first.
+     * The locator hashes are processed by a node in the order as they appear in the message. If a block hash is found in the node's main chain, the list of its children is returned back via the inv message and the remaining locators are ignored, no matter if the requested limit was reached, or not.
+     * To receive the next blocks hashes, one needs to issue getblocks again with a new block locator object. Keep in mind that some clients may provide blocks which are invalid if the block locator object contains a hash on the invalid branch.
+     *
+     * @see <a href="https://en.bitcoin.it/wiki/Protocol_documentation#getblocks">https://en.bitcoin.it/wiki/Protocol_documentation#getblocks</a>
+     */
+    private void handleGetBlocks(Object payload) {
+        GetBlocks getBlocks = (GetBlocks) payload;
+        List<String> locator = getBlocks.getLocator();
+        String hashStop = getBlocks.getHashStop();
+        List<InventoryItem> inventory = new LinkedList<>();
+
+        // return the list of blocks starting right after the last known hash in the block locator object,
+        // up to hash_stop or 500 blocks, whichever comes first.
+        for (String hash : locator) {
+            if (localClient.hasBlock(hash)) {
+                Block block = localClient.getBlock(hash);
+                while (!block.getPreviousHash().equals(hashStop) && inventory.size() < 500) {
+                    inventory.add(new InventoryItem(MSG_BLOCK, block.getPreviousHash()));
+                    block = block.getPrevBlock();
+                }
+            }
+            break;
+        }
+        // locator not found, return the genesis block
+        if (inventory.isEmpty()) {
+            inventory.add(new InventoryItem(MSG_BLOCK, localClient.getBlock(0).getHash()));
+        }
+
+        localClient.sendInv(localClient.getRemoteServer(socket.getInetAddress().getHostAddress()), new Inv(inventory));
+
     }
 
 }
