@@ -70,7 +70,7 @@ public class LocalClient {
         server.sendVerAck();
     }
 
-    public void broadcastNewBlock(Block block) throws IOException {
+    public void broadcastNewBlock(Block block) {
         Message message = new Message(Command.BLOCK, block);
         for (RemoteServer server : servers) {
             try {
