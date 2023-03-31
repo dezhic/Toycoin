@@ -1,4 +1,3 @@
-import com.sun.org.apache.xml.internal.security.algorithms.implementations.ECDSAUtils;
 import protocol.datatype.Transaction;
 import protocol.datatype.TxInput;
 import protocol.datatype.TxOutput;
@@ -7,7 +6,6 @@ import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.sun.org.apache.xml.internal.security.algorithms.implementations.ECDSAUtils.*;
 import static protocol.datatype.ECDSAUtils.getKeyPair;
 import static protocol.datatype.ECDSAUtils.signECDSA;
 
