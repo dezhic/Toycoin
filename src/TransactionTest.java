@@ -1,27 +1,32 @@
-package com;
-
-import protocol.datatype.ECDSAUtils;
+import com.sun.org.apache.xml.internal.security.algorithms.implementations.ECDSAUtils;
+import protocol.datatype.Transaction;
+import protocol.datatype.TxInput;
+import protocol.datatype.TxOutput;
 
 import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.sun.org.apache.xml.internal.security.algorithms.implementations.ECDSAUtils.*;
+import static protocol.datatype.ECDSAUtils.getKeyPair;
+import static protocol.datatype.ECDSAUtils.signECDSA;
+
 public class TransactionTest {
     public static void main(String[] args) throws Exception {
         // Generate a key pair for the person
-        KeyPair keyPair = ECDSAUtils.getKeyPair();
+        KeyPair keyPair = getKeyPair();
         String publicKey = keyPair.getPublic().toString();
         // Test amount
         int amount = 100;
 
         // Create a transaction output
-        TxOutput txOut1 = new TxOutput(publicKey, amount);
+        TxOutput txOut1 = new TxOutput(amount, publicKey);
         List<TxOutput> txOutputs1 = new ArrayList<>();
         txOutputs1.add(txOut1);
 
         // Sign data using the private key
         String data = "Example data to sign";
-        String signature = ECDSAUtils.signECDSA(keyPair.getPrivate(), data);
+        String signature = signECDSA(keyPair.getPrivate(), data);
 
         // Create a transaction input
         TxInput txIn1 = new TxInput("txOutId1", 0, signature);
@@ -34,7 +39,7 @@ public class TransactionTest {
 
         // Print transaction details
         System.out.println("Transaction ID: " + transaction.getId());
-        System.out.println("Transaction Inputs: " + transaction.getTxInputs().size());
-        System.out.println("Transaction Outputs: " + transaction.getTxOutputs().size());
+        System.out.println("Transaction Inputs: " + transaction.getTxIns().size());
+        System.out.println("Transaction Outputs: " + transaction.getTxOuts().size());
     }
 }

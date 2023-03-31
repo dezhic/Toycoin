@@ -1,43 +1,44 @@
+package protocol.datatype;
+
 import java.io.Serializable;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import javax.xml.bind.DatatypeConverter;
 import java.security.MessageDigest;
-import java.util.ArrayList;
 
 
 public class Transaction implements Serializable {
     private String id;
-    private List<TxIn> txIns;
-    private List<TxOut> txOuts;
+    private List<TxInput> txInputs;
+    private List<TxOutput> txOutputs;
 
-    public Transaction(List<TxIn> txIns, List<TxOut> txOuts) throws NoSuchAlgorithmException {
-        this.txIns = txIns;
-        this.txOuts = txOuts;
-        this.id = calculateTransactionId();
+    public Transaction(List<TxInput> txInputs, List<TxOutput> txOutputs) throws NoSuchAlgorithmException {
+        this.txInputs = txInputs;
+        this.txOutputs = txOutputs;
+        this.id = constgetTransactionId();
     }
 
     public String getId() {
         return id;
     }
 
-    public List<TxIn> getTxIns() {
-        return txIns;
+    public List<TxInput> getTxIns() {
+        return txInputs;
     }
 
-    public List<TxOut> getTxOuts() {
-        return txOuts;
+    public List<TxOutput> getTxOuts() {
+        return txOutputs;
     }
 
     private String constgetTransactionId() throws NoSuchAlgorithmException {
         StringBuilder txInputContent = new StringBuilder();
         for (TxInput txInput : txInputs) {
-            txInputContent.append(txInput.getTxOutId()).append(txInput.getTxOutIndex());
+            txInputContent.append(txInput.getPrevTxOutId()).append(txInput.getPrevTxOutIndex());
         }
 
         StringBuilder txOutputContent = new StringBuilder();
         for (TxOutput txOutput : txOutputs) {
-            txOutputContent.append(txOutput.getAddress()).append(txOutput.getAmount());
+            txOutputContent.append(txOutput.getScriptPubKey()).append(txOutput.getValue());
         }
 
         String txContent = txInputContent.toString() + txOutputContent.toString();
