@@ -197,7 +197,7 @@ public class Blockchain {
         System.out.println("Pruned the chain to height " + height);
     }
 
-    public List<Block> getBlockList() {
+    public synchronized List<Block> getBlockList() {
         return blockHeightIndex.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
                 .map(Map.Entry::getValue)

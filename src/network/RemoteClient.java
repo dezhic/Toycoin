@@ -55,6 +55,7 @@ public class RemoteClient extends Thread {
                 int length = dis.readInt();
                 byte[] bytes = dis.readNBytes(length);
                 String json = new String(bytes);
+                System.out.println("Received: " + json + " from " + socket.getInetAddress() + ":" + socket.getPort());
                 Message message = Message.fromJson(json);
                 switch (message.getCommand()) {
                     case INV:
@@ -141,7 +142,7 @@ public class RemoteClient extends Thread {
                 // check if we have the block
                 if (localClient.hasBlock(item.getHash())) {
                     System.out.println("Sending block " + item.getHash());
-                    localClient.sendBlock(localClient.getRemoteServer(socket.getInetAddress().getHostAddress()),
+                    localClient.sendBlock(localClient.getRemoteServer(socket.getInetAddress().getHostAddress(), socket.getPort()),
                             localClient.getBlock(item.getHash()));
                 } else {
                     System.out.println("Don't have block " + item.getHash());
@@ -176,7 +177,7 @@ public class RemoteClient extends Thread {
                         }
                     }
                     GetHeaders getHeaders = new GetHeaders(locator, null);
-                    localClient.sendGetHeaders(localClient.getRemoteServer(socket.getInetAddress().getHostAddress()), getHeaders);
+                    localClient.sendGetHeaders(localClient.getRemoteServer(socket.getInetAddress().getHostAddress(), socket.getPort()), getHeaders);
 
                 }
 
@@ -192,7 +193,7 @@ public class RemoteClient extends Thread {
         Version version = (Version) payload;
         String[] address = version.getLocalAddress().split(":");
         try {
-            RemoteServer rs = localClient.addServer(address[0], Integer.parseInt(address[1]));
+            RemoteServer rs = localClient.addServer(address[0], Integer.parseInt(address[1]), socket.getPort());
             localClient.sendVerAck(rs);
         } catch (Exception e) {
             e.printStackTrace();
@@ -201,7 +202,7 @@ public class RemoteClient extends Thread {
     }
 
     private void handleGetAddr() {
-        RemoteServer rs = localClient.getRemoteServer(socket.getInetAddress().getHostAddress());
+        RemoteServer rs = localClient.getRemoteServer(socket.getInetAddress().getHostAddress(), socket.getPort());
         localClient.sendAddr(rs);
     }
 
@@ -219,7 +220,7 @@ public class RemoteClient extends Thread {
                 continue; // skip myself
             }
             try {
-                localClient.addServer(addressSplit[0], Integer.parseInt(addressSplit[1]));
+                localClient.addServer(addressSplit[0], Integer.parseInt(addressSplit[1]), -1);
             } catch (IOException e) {
                 System.out.println("Cannot connect to " + address + " when sending addr");
             }
@@ -256,7 +257,7 @@ public class RemoteClient extends Thread {
             inventory.add(new InventoryItem(MSG_BLOCK, localClient.getBlock(0).getHash()));
         }
 
-        localClient.sendInv(localClient.getRemoteServer(socket.getInetAddress().getHostAddress()), new Inv(inventory));
+        localClient.sendInv(localClient.getRemoteServer(socket.getInetAddress().getHostAddress(), socket.getPort()), new Inv(inventory));
 
     }
 
@@ -295,7 +296,7 @@ public class RemoteClient extends Thread {
             )
         )).collect(Collectors.toList());
 
-        localClient.sendHeaders(localClient.getRemoteServer(socket.getInetAddress().getHostAddress()), new Headers(headers));
+        localClient.sendHeaders(localClient.getRemoteServer(socket.getInetAddress().getHostAddress(), socket.getPort()), new Headers(headers));
 
     }
 
@@ -306,11 +307,15 @@ public class RemoteClient extends Thread {
         LinkedList<Header> newHeaders = headers.getHeaders().stream()
                 .filter((header) -> (!localClient.hasBlock(header.getHash()))).collect(Collectors.toCollection(LinkedList::new));
 
+        if (newHeaders.isEmpty()) {
+            return;
+        }
+
         // Longest chain rule
         if (localClient.getLastBlock() == null) {  // new client
             // request the new blocks
             localClient.sendGetData(
-                    localClient.getRemoteServer(socket.getInetAddress().getHostAddress()),
+                    localClient.getRemoteServer(socket.getInetAddress().getHostAddress(), socket.getPort()),
                     new GetData(newHeaders.stream()
                             .map((header) -> new InventoryItem(MSG_BLOCK, header.getHash()))
                             .collect(Collectors.toList())
@@ -324,7 +329,7 @@ public class RemoteClient extends Thread {
                 // prune the current chain and request the new blocks
                 localClient.prune(newHeaders.getFirst().getPreviousHash());
                 localClient.sendGetData(
-                        localClient.getRemoteServer(socket.getInetAddress().getHostAddress()),
+                        localClient.getRemoteServer(socket.getInetAddress().getHostAddress(), socket.getPort()),
                         new GetData(newHeaders.stream()
                                 .map((header) -> new InventoryItem(MSG_BLOCK, header.getHash()))
                                 .collect(Collectors.toList())
@@ -332,7 +337,7 @@ public class RemoteClient extends Thread {
                 );
             } else {
                 // request the headers from the last known block
-                localClient.sendGetHeaders(localClient.getRemoteServer(socket.getInetAddress().getHostAddress()),
+                localClient.sendGetHeaders(localClient.getRemoteServer(socket.getInetAddress().getHostAddress(), socket.getPort()),
                         new GetHeaders(Collections.singletonList(localClient.getLastBlock().getHash()), null));
             }
         }

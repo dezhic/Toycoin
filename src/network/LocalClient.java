@@ -12,10 +12,7 @@ import protocol.message.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * This is the class that the local client will use to communicate with remote servers
@@ -23,6 +20,8 @@ import java.util.Scanner;
 public class LocalClient {
     Blockchain blockchain;
     List<RemoteServer> servers;
+
+    Map<String, RemoteServer> clientServerMap = new HashMap<>();
 
     GUI gui;
 
@@ -48,24 +47,30 @@ public class LocalClient {
             }
 
             try {
-                addServer(server[0], Integer.parseInt(server[1]));
+                addServer(server[0], Integer.parseInt(server[1]), -1);
             } catch (IOException e) {
                 System.out.println("Could not connect to server " + server[0] + ":" + server[1]);
             }
         }
     }
 
-    public RemoteServer addServer(String host, int port) throws IOException {
+    public RemoteServer addServer(String host, int serverPort, int clientPort) throws IOException {
         // Check if server already exists
         for (RemoteServer server : servers) {
             if (server.getSocket().getInetAddress().getHostAddress().equals(host) &&
-                    server.getSocket().getPort() == port) {
-                System.out.println("Server " + host + ":" + port + " already exists");
+                    server.getSocket().getPort() == serverPort) {
+                System.out.println("Server " + host + ":" + serverPort + " already exists");
+                if (clientPort != -1) {
+                    clientServerMap.put(host + ":" + clientPort, server);
+                }
                 return server;
             }
         }
-        RemoteServer rs = new RemoteServer(new Socket(host, port));
-        System.out.println("Connected to server " + host + ":" + port);
+        RemoteServer rs = new RemoteServer(new Socket(host, serverPort));
+        if (clientPort != -1) {
+            clientServerMap.put(host + ":" + clientPort, rs);
+        }
+        System.out.println("Connected to server " + host + ":" + serverPort);
         sendVersion(rs);
         servers.add(rs);
         return rs;
@@ -192,16 +197,12 @@ public class LocalClient {
         return blockchain.getBlock(height);
     }
 
-    RemoteServer getRemoteServer(String host) {
-        for (RemoteServer server : servers) {
-            if (server.getSocket().getInetAddress().getHostAddress().equals(host)) {
-                return server;
-            }
-        }
-        return null;
+    RemoteServer getRemoteServer(String host, int clientPort) {
+        return clientServerMap.get(host + ":" + clientPort);
     }
 
     public void addBlock(Block block) {
+        System.out.println("Adding block " + block.getHash() + " to blockchain");
         blockchain.add(block);
         gui.updateBlockList(blockchain.getBlockList());
     }
