@@ -46,7 +46,7 @@ public class GUI extends Thread {
     public void run() {
         frame.setLayout(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(800,600);
+        frame.setSize(600,850);
 
         mineBtn.addActionListener(e -> {
             // mining is time consuming, so we need to run it in a new thread
@@ -54,20 +54,18 @@ public class GUI extends Thread {
                 blockchain.generateToAddress(5, "addr");
             }).start();
         });
-        mineBtn.setSize(100, 50);
-        mineBtn.setLocation(0, 0);
+        mineBtn.setSize(100, 30);
+        mineBtn.setLocation(480, 560);
 
         syncBtn.addActionListener(e -> {
             blockchain.sync();
         });
-        syncBtn.setSize(100, 50);
-        syncBtn.setLocation(100, 0);
+        syncBtn.setSize(95, 30);
+        syncBtn.setLocation(175, 560);
 
         frame.getContentPane().add(mineBtn);
         frame.getContentPane().add(syncBtn);
 
-        blockList.setSize(300, 200);
-        blockList.setLocation(0, 50);
         blockList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int index = blockList.getSelectedIndex();
@@ -78,16 +76,16 @@ public class GUI extends Thread {
         });
         // scrollable blockList
         JScrollPane blockListPane = new JScrollPane(blockList);
-        blockListPane.setSize(300, 200);
-        blockListPane.setLocation(0, 50);
+        blockListPane.setSize(250, 200);
+        blockListPane.setLocation(20, 20);
         frame.getContentPane().add(blockListPane);
 
-        blockInfoTextArea.setSize(300, 500);
-        blockInfoTextArea.setLocation(400, 50);
+//        blockInfoTextArea.setSize(300, 410);
+//        blockInfoTextArea.setLocation(280, 20);
         blockInfoTextArea.setEditable(false);
         JScrollPane blockInfoPane = new JScrollPane(blockInfoTextArea);
-        blockInfoPane.setSize(300, 500);
-        blockInfoPane.setLocation(400, 50);
+        blockInfoPane.setSize(300, 410);
+        blockInfoPane.setLocation(280, 20);
         frame.getContentPane().add(blockInfoPane);
 
         getAddrBtn.addActionListener(e -> {
@@ -97,13 +95,13 @@ public class GUI extends Thread {
                 throw new RuntimeException(ex);
             }
         });
-        getAddrBtn.setSize(150, 30);
-        getAddrBtn.setLocation(0, 320);
+        getAddrBtn.setSize(145, 30);
+        getAddrBtn.setLocation(20, 560);
         frame.getContentPane().add(getAddrBtn);
 
         JScrollPane peerTablePane = new JScrollPane(peerTable);
-        peerTablePane.setSize(300, 200);
-        peerTablePane.setLocation(0, 350);
+        peerTablePane.setSize(250, 100);
+        peerTablePane.setLocation(20, 450);
         frame.getContentPane().add(peerTablePane);
 
         frame.setVisible(true);
