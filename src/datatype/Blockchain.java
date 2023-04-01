@@ -95,7 +95,7 @@ public class Blockchain {
         Block newBlock = new Block(previousBlock, nextIndex, nextHash, previousBlock.getHash(), nextTimestamp, blockData, diff, 0);
         return newBlock;
     }
-    public synchronized void generateToAddress(int nBlocks, String address) {
+    public void generateToAddress(int nBlocks, String address) {
         // if the blockchain is empty, generate a genesis block
         if (this.size() == 0) {
             Block firstBlock = ProofOfWork.findBlock(null, 0, "0", System.currentTimeMillis(),
