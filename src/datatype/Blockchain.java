@@ -215,8 +215,8 @@ public class Blockchain {
     public boolean validateTransaction(Transaction tx) throws NoSuchAlgorithmException, InvalidKeySpecException {
         // Iterate over the blockchain to find the transaction inputs
         double totalInput = 0;
-        // TODO: where to get the blockchain
-        for (Block block : blockChain) {
+        for (Map.Entry<String, Block> entry : blockHashIndex.entrySet()) {
+            Block block = entry.getValue();
             for (Transaction transaction : block.getTransactions()) {
                 for (TxInput input : tx.getTxIns()) {
                     if (transaction.getId().equals(input.getPrevTxOutId())) {
@@ -224,8 +224,8 @@ public class Blockchain {
                         TxOutput output = transaction.getTxOuts().get(input.getPrevTxOutIndex());
                         // convert the public key string to object
                         PublicKey publicKey = convertKeyString(output.getScriptPubKey());
-                        /** The data in the Signature should use the Transaction ID for the data */
-                        if (!verifyECDSA(publicKey, input.getSignatureScript(), tx.getId())) {
+                        //data is the prevTxOutId. Just assume...
+                        if (!verifyECDSA(publicKey, input.getSignatureScript(), input.getPrevTxOutId())) {
                             return false; // Invalid signature
                         }
                         totalInput += output.getValue();
