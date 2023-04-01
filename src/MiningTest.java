@@ -22,8 +22,9 @@ public class MiningTest {
         GUI.setBlockchain(blockchain);
 
         LocalClient localClient = new LocalClient(blockchain, GUI);
-        LocalServer localServer = new LocalServer(localClient);
         blockchain.setLocalClient(localClient);
+        GUI.setLocalClient(localClient);
+        LocalServer localServer = new LocalServer(localClient);
         localServer.start();
         localClient.initialize();  // localClient needs to initialize AFTER localServer starts!
 

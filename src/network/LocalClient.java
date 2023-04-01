@@ -22,6 +22,7 @@ public class LocalClient {
     List<RemoteServer> servers;
 
     Map<String, RemoteServer> clientServerMap = new HashMap<>();
+    Map<RemoteServer, String> reverseClientServerMap = new HashMap<>();
 
     GUI gui;
 
@@ -62,6 +63,8 @@ public class LocalClient {
                 System.out.println("Server " + host + ":" + serverPort + " already exists");
                 if (clientPort != -1) {
                     clientServerMap.put(host + ":" + clientPort, server);
+                    reverseClientServerMap.put(server, host + ":" + clientPort);
+                    updatePeerTable();
                 }
                 return server;
             }
@@ -69,12 +72,34 @@ public class LocalClient {
         RemoteServer rs = new RemoteServer(new Socket(host, serverPort));
         if (clientPort != -1) {
             clientServerMap.put(host + ":" + clientPort, rs);
+            reverseClientServerMap.put(rs, host + ":" + clientPort);
         }
         System.out.println("Connected to server " + host + ":" + serverPort);
         sendVersion(rs);
         servers.add(rs);
+        updatePeerTable();
         return rs;
     }
+
+    private void updatePeerTable() {
+        // build list of peers
+        List<String> peers = new LinkedList<>();
+        for (RemoteServer server : servers) {
+            peers.add(server.getSocket().getInetAddress().getHostAddress() +
+                    ":" + server.getSocket().getPort() +
+                    ":" + getClientPort(server));
+        }
+        gui.updatePeerTable(peers);
+    }
+
+    private int getClientPort(RemoteServer server) {
+        String clientInfo = reverseClientServerMap.get(server);
+        if (clientInfo == null) {
+            return -1;
+        }
+        return Integer.parseInt(clientInfo.split(":")[1]);
+    }
+
     private void sendVersion(RemoteServer server) throws IOException {
         Version version = new Version("127.0.0.1:" + System.getenv("PORT"));
         server.sendVersion(version);
