@@ -5,14 +5,17 @@ import java.security.*;
 public class ECDSAUtils {
 
     //generate KeyPair
-    public static KeyPair getKeyPair() throws Exception {
+    public static KeyPair getKeyPair() {
         //Creating KeyPair generator object
-        KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("EC");
-
-        //Initializing the KeyPairGenerator
-        SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
-        keyPairGen.initialize(256, random);
-
+        KeyPairGenerator keyPairGen = null;
+        try {
+            keyPairGen = KeyPairGenerator.getInstance("EC");
+            //Initializing the KeyPairGenerator
+            SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
+            keyPairGen.initialize(256, random);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
         return keyPairGen.generateKeyPair();
     }
 
