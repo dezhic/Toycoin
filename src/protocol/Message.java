@@ -105,34 +105,40 @@ public class Message implements Externalizable {
     public void writeExternal(ObjectOutput out) throws IOException {
         Gson gson = new Gson();
         String json = gson.toJson(this);
-        out.writeInt(json.length());
-        out.writeBytes(json);
+        out.writeObject(json);
+        System.out.println("write json: " + json);
+//        out.writeInt(json.length());
+//        out.flush();
+//        System.out.println("write length: " + json.length());
+//        out.writeBytes(json);
+//        out.flush();
+//        System.out.println("write json: " + json);
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        int length;
-        while (true) {
-            try {
-                length = in.readInt();
-                break;
-            } catch (EOFException e) {
-                // If the stream is not ready, wait for a while
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-            }
-        }
-        byte[] bytes = new byte[length];
-        // Read until filling the buffer
-        int read = 0;
-        while (read < length) {
-            read += in.read(bytes, read, length - read);
-        }
+//        int length;
+//        while (true) {
+//            try {
+//                length = in.readInt();
+//                System.out.println("read length: " + length);
+//                break;
+//            } catch (EOFException e) {
+////                System.out.print("i");
+//                // Ignore
+//            }
+//        }
+//        byte[] bytes = new byte[length];
+//        // Read until filling the buffer
+//        int read = 0;
+//        while (read < length) {
+//            read += in.read(bytes, read, length - read);
+//        }
+        String json = (String) in.readObject();
         Gson gson = new Gson();
-        Message message = gson.fromJson(new String(bytes), Message.class);
+//        String json = new String(bytes);
+        System.out.println("read json: " + json);
+        Message message = gson.fromJson(json, Message.class);
         this.command = message.getCommand();
         this.inv = message.getInv();
         this.version = message.getVersion();

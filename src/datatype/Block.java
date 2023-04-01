@@ -1,16 +1,14 @@
 package datatype;
 
 import com.google.gson.Gson;
-import protocol.Payload;
 
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Block extends Payload {
+public class Block {
     private Block prevBlock;
     private int index;  // height
     private String hash;
@@ -108,26 +106,4 @@ public class Block extends Payload {
         this.prevBlock = prevBlock;
     }
 
-    @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
-        Gson gson = new Gson();
-        String json = gson.toJson(this);
-        out.writeUTF(json);
-    }
-
-    @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        String json = in.readUTF();
-        Gson gson = new Gson();
-        Block block = gson.fromJson(json, Block.class);
-        this.prevBlock = block.getPrevBlock();
-        this.index = block.getIndex();
-        this.hash = block.getHash();
-        this.previousHash = block.getPreviousHash();
-        this.timestamp = block.getTimestamp();
-        this.data = block.getData();
-        this.difficulty = block.getDifficulty();
-        this.nonce = block.getNonce();
-        this.txs = block.getTransactions();
-    }
 }
