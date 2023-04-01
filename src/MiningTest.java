@@ -20,6 +20,8 @@ public class MiningTest {
         GUI.start();
 
         blockchain = new Blockchain();
+        GUI.setBlockchain(blockchain);
+
         LocalClient localClient = new LocalClient(blockchain, GUI);
         LocalServer localServer = new LocalServer(localClient);
         blockchain.setLocalClient(localClient);
@@ -46,13 +48,13 @@ public class MiningTest {
 //        System.out.println("root : " + merkleTrees.getRoot());
 
 
-        if (System.getenv("PORT").equals("3888")) {
-            blockchain.generateToAddress(5, "dummy_address");
-        } else if (System.getenv("PORT").equals("3889")) {
-            blockchain.sync();
-        } else {
-            blockchain.generateToAddress(3, "dummy_address");
-            blockchain.sync();
-        }
+//        if (System.getenv("PORT").equals("3888")) {
+//            blockchain.generateToAddress(5, "dummy_address");
+//        } else if (System.getenv("PORT").equals("3889")) {
+//            blockchain.sync();
+//        } else {
+//            blockchain.generateToAddress(3, "dummy_address");
+//            blockchain.sync();
+//        }
     }
 }

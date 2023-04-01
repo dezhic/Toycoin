@@ -201,10 +201,11 @@ public class LocalClient {
         return clientServerMap.get(host + ":" + clientPort);
     }
 
-    public void addBlock(Block block) {
+    public boolean addBlock(Block block) {
         System.out.println("Adding block " + block.getHash() + " to blockchain");
-        blockchain.add(block);
+        boolean success = blockchain.add(block);
         gui.updateBlockList(blockchain.getBlockList());
+        return success;
     }
 
     public void prune(String hash) {
