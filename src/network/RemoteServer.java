@@ -1,10 +1,12 @@
 package network;
 
+import com.google.gson.Gson;
 import protocol.Command;
 import protocol.Message;
 import datatype.Block;
 import protocol.message.*;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -12,15 +14,26 @@ import java.net.Socket;
 public class RemoteServer {
     private Socket socket;
 
-    private ObjectOutputStream oos;
+//    private ObjectOutputStream oos;
 
+    private DataOutputStream dos;
     public RemoteServer(Socket socket) {
         this.socket = socket;
         try {
-            this.oos = new ObjectOutputStream(socket.getOutputStream());
+//            this.oos = new ObjectOutputStream(socket.getOutputStream());
+            this.dos = new DataOutputStream(socket.getOutputStream());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void send(Message message) throws IOException {
+        Gson gson = new Gson();
+        String json = gson.toJson(message);
+        byte[] bytes = json.getBytes();
+        dos.writeInt(bytes.length);
+        dos.write(bytes);
+        dos.flush();
     }
 
     public void sendInv(Inv inv) throws IOException {
@@ -28,8 +41,9 @@ public class RemoteServer {
                 .command(Command.INV)
                 .inv(inv)
                 .build();
-        oos.writeObject(msg);
-        oos.flush();
+//        oos.writeObject(msg);
+//        oos.flush();
+        send(msg);
     }
 
     public void sendVersion(Version version) throws IOException {
@@ -37,8 +51,9 @@ public class RemoteServer {
                         .command(Command.VERSION)
                         .version(version)
                         .build();
-        oos.writeObject(message);
-        oos.flush();
+//        oos.writeObject(message);
+//        oos.flush();
+        send(message);
         System.out.println("Sent version to " + socket.getInetAddress() + ":" + socket.getPort());
     }
 
@@ -46,8 +61,9 @@ public class RemoteServer {
         Message message = Message.builder()
                         .command(Command.VERACK)
                         .build();
-        oos.writeObject(message);
-        oos.flush();
+//        oos.writeObject(message);
+//        oos.flush();
+        send(message);
         System.out.println("Sent verack to " + socket.getInetAddress() + ":" + socket.getPort());
     }
 
@@ -55,8 +71,9 @@ public class RemoteServer {
         Message message = Message.builder()
                         .command(Command.GETADDR)
                         .build();
-        oos.writeObject(message);
-        oos.flush();
+//        oos.writeObject(message);
+//        oos.flush();
+        send(message);
         System.out.println("Sent getaddr to " + socket.getInetAddress() + ":" + socket.getPort());
     }
 
@@ -65,8 +82,9 @@ public class RemoteServer {
                         .command(Command.ADDR)
                         .addr(addr)
                         .build();
-        oos.writeObject(message);
-        oos.flush();
+//        oos.writeObject(message);
+//        oos.flush();
+        send(message);
         System.out.println("Sent addr to " + socket.getInetAddress() + ":" + socket.getPort());
     }
 
@@ -75,8 +93,9 @@ public class RemoteServer {
                         .command(Command.GETDATA)
                         .getData(getData)
                         .build();
-        oos.writeObject(message);
-        oos.flush();
+//        oos.writeObject(message);
+//        oos.flush();
+        send(message);
         System.out.println("Sent getdata to " + socket.getInetAddress() + ":" + socket.getPort());
     }
 
@@ -85,8 +104,9 @@ public class RemoteServer {
                         .command(Command.BLOCK)
                         .block(block)
                         .build();
-        oos.writeObject(message);
-        oos.flush();
+//        oos.writeObject(message);
+//        oos.flush();
+        send(message);
         System.out.println("Sent block to " + socket.getInetAddress() + ":" + socket.getPort());
     }
 
@@ -95,8 +115,9 @@ public class RemoteServer {
                         .command(Command.GETBLOCKS)
                         .getBlocks(getBlocks)
                         .build();
-        oos.writeObject(message);
-        oos.flush();
+//        oos.writeObject(message);
+//        oos.flush();
+        send(message);
         System.out.println("Sent getblocks to " + socket.getInetAddress() + ":" + socket.getPort());
     }
 
@@ -105,8 +126,9 @@ public class RemoteServer {
                         .command(Command.GETHEADERS)
                         .getHeaders(getHeaders)
                         .build();
-        oos.writeObject(message);
-        oos.flush();
+//        oos.writeObject(message);
+//        oos.flush();
+        send(message);
         System.out.println("Sent getheaders to " + socket.getInetAddress() + ":" + socket.getPort());
     }
 
@@ -116,8 +138,9 @@ public class RemoteServer {
                         .command(Command.HEADERS)
                         .headers(headers)
                         .build();
-        oos.writeObject(message);
-        oos.flush();
+//        oos.writeObject(message);
+//        oos.flush();
+        send(message);
         System.out.println("Sent headers to " + socket.getInetAddress() + ":" + socket.getPort());
     }
 

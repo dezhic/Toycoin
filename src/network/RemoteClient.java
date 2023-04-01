@@ -6,6 +6,8 @@ import datatype.Header;
 import datatype.InventoryItem;
 import protocol.message.*;
 
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
@@ -39,15 +41,21 @@ public class RemoteClient extends Thread {
     }
 
     private void listen() {
-        ObjectInputStream ois = null;
+//        ObjectInputStream ois = null;
+        DataInputStream dis = null;
         try {
-            ois = new ObjectInputStream(socket.getInputStream());
+//            ois = new ObjectInputStream(socket.getInputStream());
+            dis = new DataInputStream(socket.getInputStream());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         while (true) {
             try {
-                Message message = (Message) ois.readObject();
+//                Message message = (Message) ois.readObject();
+                int length = dis.readInt();
+                byte[] bytes = dis.readNBytes(length);
+                String json = new String(bytes);
+                Message message = Message.fromJson(json);
                 switch (message.getCommand()) {
                     case INV:
                         handleInv(message.getInv());

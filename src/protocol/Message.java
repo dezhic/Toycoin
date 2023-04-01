@@ -134,7 +134,21 @@ public class Message implements Externalizable {
 //        while (read < length) {
 //            read += in.read(bytes, read, length - read);
 //        }
-        String json = (String) in.readObject();
+        Object obj = in.readObject();
+        if (obj instanceof Message) {
+            Message message = (Message) obj;
+            this.command = message.getCommand();
+            this.inv = message.getInv();
+            this.version = message.getVersion();
+            this.addr = message.getAddr();
+            this.getData = message.getGetData();
+            this.block = message.getBlock();
+            this.getBlocks = message.getGetBlocks();
+            this.getHeaders = message.getGetHeaders();
+            this.headers = message.getHeaders();
+            return;
+        }
+        String json = (String) obj;
         Gson gson = new Gson();
 //        String json = new String(bytes);
         System.out.println("read json: " + json);
@@ -148,6 +162,11 @@ public class Message implements Externalizable {
         this.getBlocks = message.getGetBlocks();
         this.getHeaders = message.getGetHeaders();
         this.headers = message.getHeaders();
+    }
+
+    public static Message fromJson(String json) {
+        Gson gson = new Gson();
+        return gson.fromJson(json, Message.class);
     }
 
     public Command getCommand() {
