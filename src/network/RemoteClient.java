@@ -116,6 +116,12 @@ public class RemoteClient extends Thread {
             }
             localClient.addBlock(block);
             return;
+        } else {
+            // check if genesis block exists in the local blockchain
+            if (localClient.getLastBlock() == null) {
+                System.out.println("Genesis block not found. Please sync first");
+                return;
+            }
         }
 
         // check if block already exists

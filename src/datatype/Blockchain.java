@@ -23,17 +23,34 @@ public class Blockchain {
 
     private Map<Integer, Block> blockHeightIndex;
 
+    private Map<String, TxOutput> utxoList;  // unspent transaction output map <txid:txOutIndex, TxOutput>
+
     public Blockchain() {
         this.blockHeightIndex = new HashMap<>();
         this.blockHashIndex = new HashMap<>();
+        this.utxoList = new HashMap<>();
     }
 
     public void setLocalClient(LocalClient localClient) {
         this.localClient = localClient;
     }
 
-    public void rebase(Block newBranchTop, int baseHeight) {
-
+    private void updateUtxo(Block block) {
+        // update utxo list
+        // remove all utxo that are spent in this block
+        for (Transaction tx : block.getTransactions()) {
+            for (TxInput txInput : tx.getTxInputs()) {
+                utxoList.remove(txInput.getPrevTxOutId() + ":" + txInput.getPrevTxOutIndex());
+            }
+        }
+        // add all new utxo
+        for (Transaction tx : block.getTransactions()) {
+            int idx = 0;
+            for (TxOutput txOutput : tx.getTxOutputs()) {
+                utxoList.put(tx.getId() + ":" + idx, txOutput);
+                idx++;
+            }
+        }
     }
 
     public synchronized boolean add(Block block) {
@@ -42,6 +59,7 @@ public class Blockchain {
             this.lastBlock = block;
             blockHashIndex.put(block.getHash(), block);
             blockHeightIndex.put(block.getIndex(), block);
+            updateUtxo(block);
             return true;
         }
         // check if block is valid
@@ -51,6 +69,7 @@ public class Blockchain {
             lastBlock = block;
             blockHashIndex.put(block.getHash(), block);
             blockHeightIndex.put(block.getIndex(), block);
+            updateUtxo(block);
             return true;
         } else {
             System.out.println("Previous hash mismatch. Block adding failed");
