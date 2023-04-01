@@ -4,8 +4,15 @@ import network.LocalClient;
 import protocol.message.GetBlocks;
 import util.ProofOfWork;
 
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static util.ECDSAUtils.verifyECDSA;
 
 public class Blockchain {
 
@@ -204,32 +211,52 @@ public class Blockchain {
     // public void loadFromFile(String filename) {
     // }
 
-    //verify the transaction (plz put it anywhere...)
-    public boolean validateTransaction(Transaction tx, Map<String, Block> blockIndex) {
-        // loop through each TxIn and verify it against a previous TxOut
-        for (TxInput txIn : tx.getTxIns()) {
-            // get the previous transaction containing the TxOut
-            Block prevBlock = blockIndex.get(txIn.getPrevTxOutId());
-            if (prevBlock == null) {
-                // previous transaction not found, invalid transaction
-                return false;
-            }
-
-            // loop through each transaction in the previous block and find the TxOut
-            for (Transaction prevTx : prevBlock.getTransactions()) {
-                if (prevTx.getId().equals(txIn.getPrevTxOutIndex())) {
-                    // TxOut found, verify the signature
-                    TxOutput txOut = prevTx.getTxOuts().get(txIn.getPrevTxOutIndex());
-                    String message = tx.getId() + txOut.getValue() + txOut.getScriptPubKey();
-                    // TODO: verify code here
-//                    if (!verifyECDSA(txOut.getScriptPubKey(), txIn.getSignatureScript(), message)) {
-//                        // invalid signature, invalid transaction
-//                        return false;
-//                    }
+    // function to verify the transaction
+    public boolean validateTransaction(Transaction tx) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        // Iterate over the blockchain to find the transaction inputs
+        double totalInput = 0;
+        // TODO: where to get the blockchain
+        for (Block block : blockChain) {
+            for (Transaction transaction : block.getTransactions()) {
+                for (TxInput input : tx.getTxIns()) {
+                    if (transaction.getId().equals(input.getPrevTxOutId())) {
+                        // Found a matching transaction output, verify the signature
+                        TxOutput output = transaction.getTxOuts().get(input.getPrevTxOutIndex());
+                        // convert the public key string to object
+                        PublicKey publicKey = convertKeyString(output.getScriptPubKey());
+                        /** The data in the Signature should use the Transaction ID for the data */
+                        if (!verifyECDSA(publicKey, input.getSignatureScript(), tx.getId())) {
+                            return false; // Invalid signature
+                        }
+                        totalInput += output.getValue();
+                    }
                 }
             }
         }
-        // all TxIns have been validated, transaction is valid
+        // Verify that the total input value equals the total output value
+        double totalOutput = 0;
+        for (TxOutput output : tx.getTxOuts()) {
+            totalOutput += output.getValue();
+        }
+        if (totalInput != totalOutput) {
+            return false; // Total input value does not equal total output value
+        }
+
         return true;
+    }
+
+    // function to convert the string key to Public key object
+    public PublicKey convertKeyString(String key) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        // Convert the public key string to a byte array
+        byte[] publicKeyBytes = java.util.Base64.getDecoder().decode(key);
+        // Create a X509EncodedKeySpec from the byte array
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(publicKeyBytes);
+        // Get a KeyFactory instance for the EC algorithm
+        KeyFactory keyFactory;
+        keyFactory = KeyFactory.getInstance("EC");
+        // Generate the PublicKey object from the key specification
+        PublicKey publicKey;
+        publicKey = keyFactory.generatePublic(spec);
+        return publicKey;
     }
 }
