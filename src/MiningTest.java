@@ -20,6 +20,7 @@ public class MiningTest {
 
         blockchain = new Blockchain();
         GUI.setBlockchain(blockchain);
+        blockchain.setGui(GUI);
 
         LocalClient localClient = new LocalClient(blockchain, GUI);
         blockchain.setLocalClient(localClient);

@@ -1,5 +1,6 @@
 package datatype;
 
+import gui.GUI;
 import network.LocalClient;
 import protocol.message.GetBlocks;
 import util.ProofOfWork;
@@ -23,12 +24,14 @@ public class Blockchain {
 
     private Map<Integer, Block> blockHeightIndex;
 
-    private Map<String, TxOutput> utxoList;  // unspent transaction output map <txid:txOutIndex, TxOutput>
+    private Map<String, TxOutput> utxos;  // unspent transaction output map <txid:txOutIndex, TxOutput>
+
+    private GUI gui;
 
     public Blockchain() {
         this.blockHeightIndex = new HashMap<>();
         this.blockHashIndex = new HashMap<>();
-        this.utxoList = new HashMap<>();
+        this.utxos = new HashMap<>();
     }
 
     public void setLocalClient(LocalClient localClient) {
@@ -40,17 +43,22 @@ public class Blockchain {
         // remove all utxo that are spent in this block
         for (Transaction tx : block.getTransactions()) {
             for (TxInput txInput : tx.getTxInputs()) {
-                utxoList.remove(txInput.getPrevTxOutId() + ":" + txInput.getPrevTxOutIndex());
+                utxos.remove(txInput.getPrevTxOutId() + ":" + txInput.getPrevTxOutIndex());
             }
         }
         // add all new utxo
         for (Transaction tx : block.getTransactions()) {
             int idx = 0;
             for (TxOutput txOutput : tx.getTxOutputs()) {
-                utxoList.put(tx.getId() + ":" + idx, txOutput);
+                utxos.put(tx.getId() + ":" + idx, txOutput);
                 idx++;
             }
         }
+        // convert utxoMap to list of string in format "txid:txOutIndex:pubKey:amount"
+        List<String> utxoList = utxos.entrySet().stream()
+                .map(entry -> entry.getKey() + ":" + entry.getValue().getScriptPubKey() + ":" + entry.getValue().getValue())
+                .collect(Collectors.toList());
+        gui.updateUTXOTable(utxoList);
     }
 
     public synchronized boolean add(Block block) {
@@ -319,5 +327,13 @@ public class Blockchain {
         PublicKey publicKey;
         publicKey = keyFactory.generatePublic(spec);
         return publicKey;
+    }
+
+    public GUI getGui() {
+        return gui;
+    }
+
+    public void setGui(GUI gui) {
+        this.gui = gui;
     }
 }

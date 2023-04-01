@@ -35,12 +35,17 @@ public class GUI extends Thread {
 
     JButton getAddrBtn = new JButton("Find Peers (getaddr)");
 
+    JTable utxoTable;
+    DefaultTableModel utxoTableModel;
+
     public GUI(String name) {
         frame = new JFrame(name);
         blockListModel = new DefaultListModel<>();
         blockList = new JList<>(blockListModel);
-        peerTableModel = new DefaultTableModel(new String[] {"IP", "Server Port", "Client Port"}, 0);
+        peerTableModel = new DefaultTableModel(new String[] {"Peer IP", "Server Port", "Client Port"}, 0);
         peerTable = new JTable(peerTableModel);
+        utxoTableModel = new DefaultTableModel(new String[] {"UTXO Tx.", "TxOut Idx", "PubKey", "Amt"}, 0);
+        utxoTable = new JTable(utxoTableModel);
     }
 
     public void run() {
@@ -99,10 +104,20 @@ public class GUI extends Thread {
         getAddrBtn.setLocation(20, 560);
         frame.getContentPane().add(getAddrBtn);
 
+        peerTable.setDefaultEditor(Object.class, null);  // disable editing
+        peerTable.setCellSelectionEnabled(true);
         JScrollPane peerTablePane = new JScrollPane(peerTable);
         peerTablePane.setSize(250, 100);
         peerTablePane.setLocation(20, 450);
         frame.getContentPane().add(peerTablePane);
+
+        // UTXO table
+        utxoTable.setDefaultEditor(Object.class, null);  // disable editing
+        utxoTable.setCellSelectionEnabled(true);
+        JScrollPane utxoTablePane = new JScrollPane(utxoTable);
+        utxoTablePane.setSize(250, 200);
+        utxoTablePane.setLocation(20, 230);
+        frame.getContentPane().add(utxoTablePane);
 
         frame.setVisible(true);
     }
@@ -124,6 +139,13 @@ public class GUI extends Thread {
         peerTableModel.setRowCount(0);
         for (String peer : peerList) {
             peerTableModel.addRow(peer.split(":"));
+        }
+    }
+
+    public void updateUTXOTable(List<String> utxoList) {
+        utxoTableModel.setRowCount(0);
+        for (String utxo : utxoList) {
+            utxoTableModel.addRow(utxo.split(":"));
         }
     }
 
