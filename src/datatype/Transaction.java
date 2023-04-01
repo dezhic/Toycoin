@@ -12,7 +12,7 @@ public class Transaction implements Serializable {
     private List<TxInput> txInputs;
     private List<TxOutput> txOutputs;
 
-    public Transaction(List<TxInput> txInputs, List<TxOutput> txOutputs) throws NoSuchAlgorithmException {
+    public Transaction(List<TxInput> txInputs, List<TxOutput> txOutputs) {
         this.txInputs = txInputs;
         this.txOutputs = txOutputs;
         this.id = constgetTransactionId();
@@ -30,7 +30,7 @@ public class Transaction implements Serializable {
         return txOutputs;
     }
 
-    private String constgetTransactionId() throws NoSuchAlgorithmException {
+    private String constgetTransactionId() {
         StringBuilder txInputContent = new StringBuilder();
         for (TxInput txInput : txInputs) {
             txInputContent.append(txInput.getPrevTxOutId()).append(txInput.getPrevTxOutIndex());
@@ -42,7 +42,12 @@ public class Transaction implements Serializable {
         }
 
         String txContent = txInputContent.toString() + txOutputContent.toString();
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        MessageDigest digest = null;
+        try {
+            digest = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
         byte[] hash = digest.digest(txContent.getBytes());
         return DatatypeConverter.printHexBinary(hash);
     }

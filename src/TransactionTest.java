@@ -22,7 +22,7 @@ public class TransactionTest {
         int amount = 100;
 
         // Create a transaction output
-        TxOutput txOut1 = new TxOutput(amount, publicKey);
+        TxOutput txOut1 = new TxOutput(amount, String.valueOf(publicKey));
         List<TxOutput> txOutputs1 = new ArrayList<>();
         txOutputs1.add(txOut1);
 

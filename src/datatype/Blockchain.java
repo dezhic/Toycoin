@@ -85,34 +85,75 @@ public class Blockchain {
     }
 
 
-    private Block generateNextBlock(String blockdata, int diff) {
-        Block previousBlock= this.getBlock(this.size() - 1);
+    private Block generateGenesisBlock(List<Transaction> coinbaseTx, String merkleRoot) {
+        int diff = 16; // default difficulty
+        int index= 0;
+        long nextTimestamp = System.currentTimeMillis() / 1000;
+        String blockData = index +
+                "0" +   // previous hash == 0
+                nextTimestamp +
+                merkleRoot +
+                diff +
+                0;      // initial nonce == 0, to be found by proof of work algorithm
+        String hash = ProofOfWork.calculateHash(blockData);
+        // new block here, with initial nonce 0. The exact nonce will be found by the proof of work algorithm
+        Block genesisBlock = new Block(null, index, hash, "0", nextTimestamp, merkleRoot, diff, 0, coinbaseTx);
+        return genesisBlock;
+    }
+
+    private Block generateNextBlock(List<Transaction> txs, String merkleRoot) {
+        int diff = ProofOfWork.getDifficulty(this);
+        Block previousBlock= this.lastBlock;
         int nextIndex= previousBlock.getIndex() + 1;
         long nextTimestamp = System.currentTimeMillis() / 1000;
-        String blockData = nextIndex + previousBlock.getHash() + nextTimestamp + blockdata + diff + 0;
+        String blockData = nextIndex + previousBlock.getHash() + nextTimestamp + merkleRoot + diff + 0;
         String nextHash = ProofOfWork.calculateHash(blockData);
         // new block here, with initial nonce 0. The exact nonce will be found by the proof of work algorithm
-        Block newBlock = new Block(previousBlock, nextIndex, nextHash, previousBlock.getHash(), nextTimestamp, blockData, diff, 0);
+        Block newBlock = new Block(previousBlock, nextIndex, nextHash, previousBlock.getHash(), nextTimestamp, blockData, diff, 0, txs);
         return newBlock;
     }
     public void generateToAddress(int nBlocks, String address) {
         // if the blockchain is empty, generate a genesis block
         if (this.size() == 0) {
-            Block firstBlock = ProofOfWork.findBlock(null, 0, "0", System.currentTimeMillis(),
-                    "DUMMY_Coinbase_Tx_MercleRoot", 16);
+            Transaction coinbaseTx = new Transaction(
+                    new ArrayList<>(),  // no input for coinbase transaction
+                    List.of(new TxOutput(50, address))  // 50 coins to the miner's address
+            );
+            String merkleRoot = "TODO";  // TODO: get merkle root from txs
+            Block firstBlock = generateGenesisBlock(List.of(coinbaseTx), merkleRoot);
+            ProofOfWork.findNonce(firstBlock);
             localClient.addBlock(firstBlock);  // calling localClient for updating GUI
             nBlocks--;
         }
+
         // find a valid block
         while(nBlocks > 0) {
             nBlocks--;
-            int diff = ProofOfWork.getDifficulty(this);
+
+            // Gather transactions and create a merkle root
+            // 1. coinbase transaction
+            Transaction coinbaseTx = new Transaction(
+                    new ArrayList<>(),  // no input for coinbase transaction
+                    List.of(new TxOutput(50, address))  // 50 coins to the miner's address
+            );
+
+            // 2. transactions from the mempool
+            // TODO
+             List<Transaction> memPoolTx = null;
+
+             List<Transaction> txs = new LinkedList<>(); // all transactions
+             txs.add(coinbaseTx);
+//             txs.addAll(memPoolTx);
+
+            // 3. create merkle root
+            String merkleRoot = "TODO";  // TODO: get merkle root from txs
+
+
             // generate new block //TODO: data is merkle root
-            String msg = "BlockChain "+this.size();
-            Block newBlock = generateNextBlock(msg, diff);
+            Block newBlock = generateNextBlock(txs, merkleRoot);
 
             long start = System.currentTimeMillis(); //get start time
-            Block block = ProofOfWork.findBlock(this.getBlock(this.size() - 1), newBlock.getIndex(), newBlock.getPreviousHash(), newBlock.getTimestamp(), newBlock.getData(), newBlock.getDifficulty());
+            Block block = ProofOfWork.findNonce(newBlock);
             //store the block
             localClient.addBlock(block);  // calling localClient for updating GUI
             long end = System.currentTimeMillis(); //get end time

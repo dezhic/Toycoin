@@ -1,6 +1,7 @@
 package datatype;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -9,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Block {
-    private Block prevBlock;
+    private transient Block prevBlock;
     private int index;  // height
     private String hash;
     private String previousHash;
@@ -17,11 +18,9 @@ public class Block {
     private String data;
     private int difficulty; //The difficulty defines how many prefixing zeros the block hash must have, for the block to be valid.
     private int nonce; // default: 0
+    private List<Transaction> txs;
 
-//    private Transaction[] txs;
-    private List<Transaction> txs = new ArrayList<>();
-
-    public Block(Block prevBlock, int index, String hash, String previousHash, long timestamp, String data, int difficulty, int nonce) {
+    public Block(Block prevBlock, int index, String hash, String previousHash, long timestamp, String data, int difficulty, int nonce, List<Transaction> txs) {
         this.prevBlock = prevBlock;
         this.index = index;
         this.hash = hash;
@@ -30,6 +29,7 @@ public class Block {
         this.data = data;
         this.difficulty = difficulty;
         this.nonce = nonce;
+        this.txs = txs;
     }
 
     // get Transaction
@@ -106,4 +106,8 @@ public class Block {
         this.prevBlock = prevBlock;
     }
 
+    public String toString() {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        return gson.toJson(this);
+    }
 }

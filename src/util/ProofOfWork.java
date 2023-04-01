@@ -13,15 +13,21 @@ public class ProofOfWork {
     private static final int BLOCK_GENERATION_INTERVAL = 10000; // defines how often a block should be found (in ms)
     private static final int DIFFICULTY_ADJUSTMENT_INTERVAL = 10; //defines how often the difficulty should be adjusted with the increasing or decreasing network hashrate.
 
-    // find the next block
-    public static Block findBlock(Block prevBlock, int index, String previousHash, long timestamp, String data, int difficulty) {
+    public static Block findNonce(Block block) {
         int nonce = 0;
 
         while (true) {
-            String blockData = index + previousHash + timestamp + data + difficulty + nonce;
+            String blockData = block.getIndex() +
+                    block.getPreviousHash() +
+                    block.getTimestamp() +
+                    block.getData() +
+                    block.getDifficulty() +
+                    nonce;
             String hash = calculateHash(blockData);
-            if(hashMatchesDifficulty(hash, difficulty)){
-                return new Block(prevBlock, index, hash, previousHash, timestamp, data, difficulty, nonce);
+            if(hashMatchesDifficulty(hash, block.getDifficulty())){
+                block.setNonce(nonce);
+                block.setHash(hash);
+                return block;
             }
             nonce++;
         }

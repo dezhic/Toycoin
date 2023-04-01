@@ -7,9 +7,9 @@ public class TxOutput implements Serializable {
     private long value;
     private String scriptPubKey;
 
-    public TxOutput(long value, PublicKey scriptPubKey) {
+    public TxOutput(long value, String scriptPubKey) {
         this.value = value;
-        this.scriptPubKey = String.valueOf(scriptPubKey);
+        this.scriptPubKey = scriptPubKey;
     }
 
     public long getValue() {

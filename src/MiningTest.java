@@ -13,7 +13,6 @@ import java.util.List;
 
 public class MiningTest {
     public static Blockchain blockchain; // store the Block
-    public static int diff = 12;
 
     public static void main(String[]args) throws NoSuchAlgorithmException, IOException {
         GUI GUI = new GUI(System.getenv("PORT"));
