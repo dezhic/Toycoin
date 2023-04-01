@@ -123,6 +123,7 @@ public class Blockchain {
             Block firstBlock = generateGenesisBlock(List.of(coinbaseTx), merkleRoot);
             ProofOfWork.findNonce(firstBlock);
             localClient.addBlock(firstBlock);  // calling localClient for updating GUI
+            localClient.broadcastNewBlock(firstBlock);
             nBlocks--;
         }
 
@@ -230,7 +231,7 @@ public class Blockchain {
             return;
         }
         int height = block.getIndex();
-        for (int i = height; i < size(); i++) {
+        for (int i = height + 1; i < size(); i++) {
             blockHashIndex.remove(blockHeightIndex.get(i).getHash());
             blockHeightIndex.remove(i);
         }
