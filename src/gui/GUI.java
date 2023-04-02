@@ -59,6 +59,11 @@ public class GUI extends Thread {
 
     JButton copyBtn = new JButton("Copy");
 
+    TextField fromAddrField = new TextField("");
+    TextField toAddrField = new TextField("");
+    JSpinner amtSpinner = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
+    JButton sendBtn = new JButton("Send");
+
     private class LongTextCellRenderer extends DefaultTableCellRenderer {
         @Override
         public void setValue(Object value) {
@@ -197,6 +202,63 @@ public class GUI extends Thread {
         copyBtn.setSize(100, 30);
         copyBtn.setLocation(130, 750);
         frame.getContentPane().add(copyBtn);
+
+        // Transfer Section
+        // FROM
+        JLabel fromLabel = new JLabel("FROM:");
+        fromLabel.setSize(50, 30);
+        fromLabel.setLocation(290, 620);
+        fromLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        fromLabel.setFont(new Font("Arial", Font.PLAIN, 10));
+        frame.getContentPane().add(fromLabel);
+        // from address field
+        fromAddrField.setSize(220, 30);
+        fromAddrField.setLocation(350, 620);
+        frame.getContentPane().add(fromAddrField);
+        // TO
+        JLabel toLabel = new JLabel("TO:");
+        toLabel.setSize(50, 30);
+        toLabel.setLocation(290, 660);
+        toLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        toLabel.setFont(new Font("Arial", Font.PLAIN, 10));
+        frame.getContentPane().add(toLabel);
+        // to address field
+        toAddrField.setSize(220, 30);
+        toAddrField.setLocation(350, 660);
+        frame.getContentPane().add(toAddrField);
+        // AMOUNT
+        JLabel amountLabel = new JLabel("AMOUNT:");
+        amountLabel.setSize(50, 30);
+        amountLabel.setLocation(290, 700);
+        amountLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        amountLabel.setFont(new Font("Arial", Font.PLAIN, 10));
+        frame.getContentPane().add(amountLabel);
+        // amount field
+        amtSpinner.setSize(220, 30);
+        amtSpinner.setLocation(350, 700);
+        frame.getContentPane().add(amtSpinner);
+        // SEND
+        sendBtn.addActionListener(e -> {
+            String fromAddr = fromAddrField.getText();
+            String toAddr = toAddrField.getText();
+            int amount = (int) amtSpinner.getValue();
+            if (fromAddr.isEmpty() || toAddr.isEmpty()) {
+                JOptionPane.showMessageDialog(frame, "Please enter from/to address");
+                return;
+            }
+            if (amount <= 0) {
+                JOptionPane.showMessageDialog(frame, "Please enter a positive amount");
+                return;
+            }
+            try {
+                localClient.broadcastTx(fromAddr, toAddr, amount);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(frame, ex.getMessage());
+            }
+        });
+        sendBtn.setSize(100, 30);
+        sendBtn.setLocation(400, 735);
+        frame.getContentPane().add(sendBtn);
 
         frame.setVisible(true);
     }

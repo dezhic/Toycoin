@@ -1,12 +1,9 @@
 package network;
 
+import datatype.*;
 import gui.GUI;
 import protocol.Command;
 import protocol.Message;
-import datatype.Block;
-import datatype.Blockchain;
-import datatype.InventoryItem;
-import datatype.InventoryType;
 import protocol.message.*;
 
 import java.io.File;
@@ -239,6 +236,23 @@ public class LocalClient {
 
     public Block getLastBlock() {
         return blockchain.getLastBlock();
+    }
+
+    public void broadcastTx(String from, String to, int amount) throws Exception {
+        Transaction tx = blockchain.getWallet().createTransaction(from, to, amount);
+
+        // TODO: broadcast tx
+        for (RemoteServer server : servers) {
+//            try {
+//                InventoryItem item = new InventoryItem(InventoryType.MSG_TX, tx.getHash());
+//                Inv inv = new Inv(Collections.singletonList(item));
+//                server.sendInv(inv);
+//            } catch (IOException e) {
+//                System.out.println("Could not send tx to " + server.getSocket().getInetAddress().getHostAddress() + ":" + server.getSocket().getPort());
+//                servers.remove(server);
+//                System.out.println("Removed server " + server.getSocket().getInetAddress().getHostAddress() + ":" + server.getSocket().getPort());
+//            }
+        }
     }
 
 }

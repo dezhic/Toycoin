@@ -1,6 +1,8 @@
 package util;//import org.apache.commons.codec.binary.Hex;
 import javax.xml.bind.DatatypeConverter;
 import java.security.*;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 
 public class ECDSAUtils {
 
@@ -59,4 +61,25 @@ public class ECDSAUtils {
         return false;
     }
 
+    public static PrivateKey privateKeyFromBytes(byte[] bytes) {
+        try {
+            KeyFactory keyFactory = KeyFactory.getInstance("EC");
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(bytes);
+            return keyFactory.generatePrivate(keySpec);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static PublicKey publicKeyFromBytes(byte[] bytes) {
+        try {
+            KeyFactory keyFactory = KeyFactory.getInstance("EC");
+            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(bytes);
+            return keyFactory.generatePublic(keySpec);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
