@@ -156,7 +156,7 @@ public class Wallet {
      * @param signature signature in the spending TxInput
      * @return true if the signature is valid, false otherwise
      */
-    private boolean verifyUtxo(String utxoLocator, String signature) {
+    public boolean verifyUtxo(String utxoLocator, String signature) {
         // Get the UTXO from the blockchain
         TxOutput utxo = blockchain.getUtxos().get(utxoLocator);
         if (utxo == null) {

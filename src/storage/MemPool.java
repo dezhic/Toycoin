@@ -4,6 +4,7 @@ import datatype.Transaction;
 import gui.GUI;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -46,5 +47,9 @@ public class MemPool {
     public void updateGui() {
         GUI gui = GUI.getInstance();
         gui.updateMemPoolTable(new ArrayList<>(txMap.keySet()));
+    }
+
+    public List<Transaction> getAllTransactions() {
+        return new ArrayList<>(txMap.values());
     }
 }

@@ -3,18 +3,14 @@ package datatype;
 import gui.GUI;
 import network.LocalClient;
 import protocol.message.GetBlocks;
+import storage.MemPool;
 import storage.Wallet;
 import util.ProofOfWork;
 
-import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static util.ECDSAUtils.verifyECDSA;
 
 public class Blockchain {
 
@@ -84,6 +80,7 @@ public class Blockchain {
         }
         // check if block is valid
         if (block.getPreviousHash().equals(lastBlock.getHash())) {
+            // TODO: check if transactions are valid
             // add block to blockchain
             block.setPrevBlock(lastBlock);
             lastBlock = block;
@@ -124,10 +121,11 @@ public class Blockchain {
     }
 
 
-    private Block generateGenesisBlock(List<Transaction> coinbaseTx, String merkleRoot) {
+    private Block generateGenesisBlock(List<Transaction> coinbaseTx) {
         int diff = 16; // default difficulty
         int index= 0;
         long nextTimestamp = System.currentTimeMillis() / 1000;
+        String merkleRoot = coinbaseTx.get(0).getId();  // merkle root is simply the hash of the coinbase transaction
         String blockData = index +
                 "0" +   // previous hash == 0
                 nextTimestamp +
@@ -140,7 +138,13 @@ public class Blockchain {
         return genesisBlock;
     }
 
-    private Block generateNextBlock(List<Transaction> txs, String merkleRoot) {
+    private Block generateNextBlock(List<Transaction> txs) {
+        // create merkle root
+        MerkleTree merkleTree = new MerkleTree(
+                txs.stream().map(Transaction::getId).collect(Collectors.toList())
+        );
+        String merkleRoot = merkleTree.getRoot();
+        // get difficulty
         int diff = ProofOfWork.getDifficulty(this);
         Block previousBlock= this.lastBlock;
         int nextIndex= previousBlock.getIndex() + 1;
@@ -151,6 +155,7 @@ public class Blockchain {
         Block newBlock = new Block(previousBlock, nextIndex, nextHash, previousBlock.getHash(), nextTimestamp, blockData, diff, 0, txs);
         return newBlock;
     }
+
     public void generateToAddress(int nBlocks, String address) {
         // if the blockchain is empty, generate a genesis block
         if (this.size() == 0) {
@@ -158,8 +163,7 @@ public class Blockchain {
                     new ArrayList<>(),  // no input for coinbase transaction
                     List.of(new TxOutput(50, address))  // 50 coins to the miner's address
             );
-            String merkleRoot = "TODO";  // TODO: get merkle root from txs
-            Block firstBlock = generateGenesisBlock(List.of(coinbaseTx), merkleRoot);
+            Block firstBlock = generateGenesisBlock(List.of(coinbaseTx));
             ProofOfWork.findNonce(firstBlock);
             localClient.addBlock(firstBlock);  // calling localClient for updating GUI
             localClient.broadcastNewBlock(firstBlock);
@@ -168,38 +172,40 @@ public class Blockchain {
 
         // find a valid block
         while(nBlocks > 0) {
-            nBlocks--;
-
             // Gather transactions and create a merkle root
+            List<Transaction> txs = new LinkedList<>(); // all transactions
             // 1. coinbase transaction
             Transaction coinbaseTx = new Transaction(
                     new ArrayList<>(),  // no input for coinbase transaction
                     List.of(new TxOutput(50, address))  // 50 coins to the miner's address
             );
+            txs.add(coinbaseTx);
 
             // 2. transactions from the mempool
-            // TODO
-             List<Transaction> memPoolTx = null;
+            List<Transaction> memPoolTxs = MemPool.getInstance().getAllTransactions();
+            List<Transaction> validatedMemPoolTxs = filterValidMemPoolTxs(memPoolTxs);
+            txs.addAll(validatedMemPoolTxs);
 
-             List<Transaction> txs = new LinkedList<>(); // all transactions
-             txs.add(coinbaseTx);
-//             txs.addAll(memPoolTx);
-
-            // 3. create merkle root
-            String merkleRoot = "TODO";  // TODO: get merkle root from txs
-
-
-            // generate new block //TODO: data is merkle root
-            Block newBlock = generateNextBlock(txs, merkleRoot);
+            // generate new block
+            Block newBlock = generateNextBlock(txs);
 
             long start = System.currentTimeMillis(); //get start time
             Block block = ProofOfWork.findNonce(newBlock);
             //store the block
-            localClient.addBlock(block);  // calling localClient for updating GUI
+            boolean isAdded = localClient.addBlock(block);  // calling localClient for updating GUI
+            if (!isAdded) {
+                System.out.println("Failed to add block. The block has become invalid for the current chain.");
+                continue;
+            }
             long end = System.currentTimeMillis(); //get end time
             System.out.println("New block added to blockchain with hash: " + block.getHash());
             System.out.println("Nonce: " + block.getNonce());
             System.out.println("running time：" + (end-start) + "ms"); //get running time
+
+            // clean up mempool
+            for (Transaction tx : memPoolTxs) {
+                MemPool.getInstance().remove(tx);
+            }
 
             // broadcast the new block
             localClient.broadcastNewBlock(block);
@@ -209,6 +215,7 @@ public class Blockchain {
 //                localClient.broadcastGetAddr();
 //            }
 
+            nBlocks--;
         }
     }
 
@@ -285,6 +292,15 @@ public class Blockchain {
                 .collect(Collectors.toList());
     }
 
+    private synchronized List<Transaction> filterValidMemPoolTxs(List<Transaction> txs) {
+        List<Transaction> validTxs = new LinkedList<>();
+        for (Transaction tx : txs) {
+            if (validateMemPoolTx(tx)) {
+                validTxs.add(tx);
+            }
+        }
+        return validTxs;
+    }
 
     // public void storeToFile(String filename) {
     // }
@@ -293,52 +309,19 @@ public class Blockchain {
     // }
 
     // function to verify the transaction
-    public boolean validateTransaction(Transaction tx) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        // Iterate over the blockchain to find the transaction inputs
-        double totalInput = 0;
-        for (Map.Entry<String, Block> entry : blockHashIndex.entrySet()) {
-            Block block = entry.getValue();
-            for (Transaction transaction : block.getTransactions()) {
-                for (TxInput input : tx.getTxIns()) {
-                    if (transaction.getId().equals(input.getPrevTxOutId())) {
-                        // Found a matching transaction output, verify the signature
-                        TxOutput output = transaction.getTxOuts().get(input.getPrevTxOutIndex());
-                        // convert the public key string to object
-                        PublicKey publicKey = convertKeyString(output.getScriptPubKey());
-                        //data is the prevTxOutId. Just assume...
-                        if (!verifyECDSA(publicKey, input.getSignatureScript(), input.getPrevTxOutId())) {
-                            return false; // Invalid signature
-                        }
-                        totalInput += output.getValue();
-                    }
-                }
+    public boolean validateMemPoolTx(Transaction tx) {
+        System.out.println("Validating transaction: " + tx.getId());
+        // check if the transaction is valid
+        for (TxInput txInput : tx.getTxInputs()) {
+            // locate the previous transaction output
+            String utxoLocator = txInput.getPrevTxOutId() + ":" + txInput.getPrevTxOutIndex();
+            if (wallet.verifyUtxo(utxoLocator, txInput.getSignatureScript())) {
+                System.out.println("Signature [" + txInput.getSignatureScript() + "] of prevTxOut [" + utxoLocator + "] is valid");
+                return false;
             }
         }
-        // Verify that the total input value equals the total output value
-        double totalOutput = 0;
-        for (TxOutput output : tx.getTxOuts()) {
-            totalOutput += output.getValue();
-        }
-        if (totalInput != totalOutput) {
-            return false; // Total input value does not equal total output value
-        }
-
+        System.out.println("Transaction " + tx.getId() + " is valid");
         return true;
-    }
-
-    // function to convert the string key to Public key object
-    public PublicKey convertKeyString(String key) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        // Convert the public key string to a byte array
-        byte[] publicKeyBytes = java.util.Base64.getDecoder().decode(key);
-        // Create a X509EncodedKeySpec from the byte array
-        X509EncodedKeySpec spec = new X509EncodedKeySpec(publicKeyBytes);
-        // Get a KeyFactory instance for the EC algorithm
-        KeyFactory keyFactory;
-        keyFactory = KeyFactory.getInstance("EC");
-        // Generate the PublicKey object from the key specification
-        PublicKey publicKey;
-        publicKey = keyFactory.generatePublic(spec);
-        return publicKey;
     }
 
     public GUI getGui() {
