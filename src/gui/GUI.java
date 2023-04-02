@@ -176,11 +176,6 @@ public class GUI extends Thread {
         // GenKey button
         genKeyBtn.addActionListener(e -> {
             wallet.generateKey();
-            keyTableModel.setRowCount(0);
-            List<String> keysWithBalance = wallet.getKeysWithBalance();
-            for (String kwb : keysWithBalance) {
-                keyTableModel.addRow(kwb.split(":"));
-            }
         });
         genKeyBtn.setSize(100, 30);
         genKeyBtn.setLocation(20, 750);
@@ -229,6 +224,13 @@ public class GUI extends Thread {
         utxoTableModel.setRowCount(0);
         for (String utxo : utxoList) {
             utxoTableModel.addRow(utxo.split(":"));
+        }
+    }
+
+    public void updateKeyTable(List<String> keysWithBalance) {
+        keyTableModel.setRowCount(0);
+        for (String kwb : keysWithBalance) {
+            keyTableModel.addRow(kwb.split(":"));
         }
     }
 

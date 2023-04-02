@@ -46,14 +46,23 @@ public class Blockchain {
         // remove all utxo that are spent in this block
         for (Transaction tx : block.getTransactions()) {
             for (TxInput txInput : tx.getTxInputs()) {
-                utxos.remove(txInput.getPrevTxOutId() + ":" + txInput.getPrevTxOutIndex());
+                String utxoLocator = txInput.getPrevTxOutId() + ":" + txInput.getPrevTxOutIndex();
+                TxOutput toRemove = utxos.get(utxoLocator);
+                if (toRemove == null) {
+                    System.out.println("Error: utxo not found");
+                    continue;
+                }
+                wallet.removeUtxos(toRemove.getScriptPubKey(), utxoLocator);
+                utxos.remove(utxoLocator);
             }
         }
         // add all new utxo
         for (Transaction tx : block.getTransactions()) {
             int idx = 0;
             for (TxOutput txOutput : tx.getTxOutputs()) {
-                utxos.put(tx.getId() + ":" + idx, txOutput);
+                String utxoLocator = tx.getId() + ":" + idx;
+                utxos.put(utxoLocator, txOutput);
+                wallet.addUtxos(txOutput.getScriptPubKey(), utxoLocator);
                 idx++;
             }
         }
@@ -346,5 +355,9 @@ public class Blockchain {
 
     public void setWallet(Wallet wallet) {
         this.wallet = wallet;
+    }
+
+    public Map<String, TxOutput> getUtxos() {
+        return utxos;
     }
 }

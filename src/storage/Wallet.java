@@ -1,7 +1,9 @@
 package storage;
 
+import datatype.Blockchain;
 import datatype.Transaction;
 import datatype.TxOutput;
+import gui.GUI;
 import util.Base58;
 import util.ECDSAUtils;
 
@@ -19,11 +21,15 @@ import java.util.stream.Collectors;
 public class Wallet {
 
     private Map<String, String> keys;  // public key -> private key
-    private Map<String, List<TxOutput>> utxos;  // public key -> unspent outputs
+    private Map<String, List<String>> utxoLocators;  // public key -> locator of unspent outputs (txid:index)
+
+    private Blockchain blockchain;
+
+    private GUI gui;
 
     public Wallet() {
         keys = new HashMap<>();
-        utxos = new HashMap<>();
+        utxoLocators = new HashMap<>();
     }
 
     /**
@@ -36,23 +42,25 @@ public class Wallet {
         String publicKey = Base58.encode(pubKeyBytes);
         String privateKey = Base58.encode(privKeyBytes);
         keys.put(publicKey, privateKey);
+        gui.updateKeyTable(getKeysWithBalance());
     }
 
     /**
      * return a list of public and private keys with the sum of their unspent output values
      * each item formatted as "publicKey:privateKey:balance"
      */
-    public List<String> getKeysWithBalance() {
+    private List<String> getKeysWithBalance() {
         // Get a list of public keys and private keys from Map keys
         return keys.entrySet().stream()
                 .map(entry -> {
                     String publicKey = entry.getKey();
                     String privateKey = entry.getValue();
                     // Get the sum of unspent outputs for this public key
-                    if (!utxos.containsKey(publicKey)) {
+                    if (!utxoLocators.containsKey(publicKey)) {
                         return publicKey + ":" + privateKey + ":0";
                     } else {
-                        long balance = utxos.get(publicKey).stream()
+                        long balance = utxoLocators.get(publicKey).stream()
+                                .map(locator -> blockchain.getUtxos().get(locator))
                                 .mapToLong(TxOutput::getValue)
                                 .sum();
                         return publicKey + ":" + privateKey + ":" + balance;
@@ -61,21 +69,22 @@ public class Wallet {
                 .collect(Collectors.toList());
     }
 
-    public void addUtxos(String publicKey, List<TxOutput> utxos) {
+    public void addUtxos(String publicKey, String utxoLocator) {
         // add or concatenate to existing list
-        if (this.utxos.containsKey(publicKey)) {
-            this.utxos.get(publicKey).addAll(utxos);
+        if (this.utxoLocators.containsKey(publicKey)) {
+            this.utxoLocators.get(publicKey).add(utxoLocator);
         } else {
-            // add a mutable copy of the list
-            List<TxOutput> copy = new LinkedList<>(utxos);
-            this.utxos.put(publicKey, copy);
+            List<String> utxoLocators = new LinkedList<>();
+            utxoLocators.add(utxoLocator);
+            this.utxoLocators.put(publicKey, utxoLocators);
         }
+        gui.updateKeyTable(getKeysWithBalance());
     }
 
-    public void removeUtxos(String publicKey, List<TxOutput> utxos) {
+    public void removeUtxos(String publicKey, String utxoLocator) {
         // remove from existing list
-        if (this.utxos.containsKey(publicKey)) {
-            this.utxos.get(publicKey).removeAll(utxos);
+        if (this.utxoLocators.containsKey(publicKey)) {
+            this.utxoLocators.get(publicKey).remove(utxoLocator);
         }
     }
 
@@ -84,4 +93,15 @@ public class Wallet {
         return null;
     }
 
+    public void setBlockchain(Blockchain blockchain) {
+        this.blockchain = blockchain;
+    }
+
+    public GUI getGui() {
+        return gui;
+    }
+
+    public void setGui(GUI gui) {
+        this.gui = gui;
+    }
 }

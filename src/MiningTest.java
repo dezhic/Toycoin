@@ -26,6 +26,8 @@ public class MiningTest {
         Wallet wallet = new Wallet();
         GUI.setWallet(wallet);
         blockchain.setWallet(wallet);
+        wallet.setBlockchain(blockchain);
+        wallet.setGui(GUI);
 
 
         LocalClient localClient = new LocalClient(blockchain, GUI);
