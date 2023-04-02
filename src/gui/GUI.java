@@ -64,6 +64,9 @@ public class GUI extends Thread {
     JSpinner amtSpinner = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
     JButton sendBtn = new JButton("Send");
 
+    JTable memPoolTable;
+    DefaultTableModel memPoolTableModel;
+
     private class LongTextCellRenderer extends DefaultTableCellRenderer {
         @Override
         public void setValue(Object value) {
@@ -94,6 +97,8 @@ public class GUI extends Thread {
         keyTableModel = new DefaultTableModel(new String[] {"PubKey", "PrivKey", "Balance"}, 0);
         keyTable = new JTable(keyTableModel);
         keyTable.setDefaultRenderer(Object.class, longTextCellRenderer);
+        memPoolTableModel = new DefaultTableModel(new String[] {"MemPool Tx."}, 0);
+        memPoolTable = new JTable(memPoolTableModel);
     }
 
     public void run() {
@@ -264,6 +269,14 @@ public class GUI extends Thread {
         sendBtn.setLocation(400, 735);
         frame.getContentPane().add(sendBtn);
 
+        // MemPool
+        memPoolTable.setDefaultEditor(Object.class, null);  // disable editing
+        memPoolTable.setCellSelectionEnabled(true);
+        JScrollPane memPoolTablePane = new JScrollPane(memPoolTable);
+        memPoolTablePane.setSize(300, 100);
+        memPoolTablePane.setLocation(280, 450);
+        frame.getContentPane().add(memPoolTablePane);
+
         frame.setVisible(true);
     }
 
@@ -298,6 +311,13 @@ public class GUI extends Thread {
         keyTableModel.setRowCount(0);
         for (String kwb : keysWithBalance) {
             keyTableModel.addRow(kwb.split(":"));
+        }
+    }
+
+    public void updateMemPoolTable(List<String> txIds) {
+        memPoolTableModel.setRowCount(0);
+        for (String txId : txIds) {
+            memPoolTableModel.addRow(new String[]{txId});
         }
     }
 
