@@ -69,6 +69,27 @@ public class Blockchain {
         gui.updateUTXOTable(utxoList);
     }
 
+    public void rebuildUtxos() {
+        utxos.clear();
+        for (int i = 0; i < size(); i++) {
+            Block block = getBlock(i);
+            for (Transaction tx : block.getTransactions()) {
+                int idx = 0;
+                for (TxOutput txOutput : tx.getTxOutputs()) {
+                    String utxoLocator = tx.getId() + ":" + idx;
+                    utxos.put(utxoLocator, txOutput);
+                    wallet.addUtxos(txOutput.getScriptPubKey(), utxoLocator);
+                    idx++;
+                }
+            }
+        }
+        // convert utxoMap to list of string in format "txid:txOutIndex:pubKey:amount"
+        List<String> utxoList = utxos.entrySet().stream()
+                .map(entry -> entry.getKey() + ":" + entry.getValue().getScriptPubKey() + ":" + entry.getValue().getValue())
+                .collect(Collectors.toList());
+        gui.updateUTXOTable(utxoList);
+    }
+
     public synchronized boolean add(Block block) {
         // add genesis block
         if (this.lastBlock == null) {
@@ -274,12 +295,16 @@ public class Blockchain {
             blockHashIndex.clear();
             blockHeightIndex.clear();
             lastBlock = null;
+            utxos.clear();
+            wallet.clearUtxos();
             return;
         }
         int height = block.getIndex();
         for (int i = height + 1; i < size(); i++) {
-            blockHashIndex.remove(blockHeightIndex.get(i).getHash());
+            Block b = blockHeightIndex.get(i);
+            blockHashIndex.remove(b.getHash());
             blockHeightIndex.remove(i);
+            rebuildUtxos();
         }
         lastBlock = block;
         System.out.println("Pruned the chain to height " + height);
@@ -315,7 +340,7 @@ public class Blockchain {
         for (TxInput txInput : tx.getTxInputs()) {
             // locate the previous transaction output
             String utxoLocator = txInput.getPrevTxOutId() + ":" + txInput.getPrevTxOutIndex();
-            if (wallet.verifyUtxo(utxoLocator, txInput.getSignatureScript())) {
+            if (!wallet.verifyUtxo(utxoLocator, txInput.getSignatureScript())) {
                 System.out.println("Signature [" + txInput.getSignatureScript() + "] of prevTxOut [" + utxoLocator + "] is valid");
                 return false;
             }

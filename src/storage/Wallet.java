@@ -167,7 +167,7 @@ public class Wallet {
         String publicKey = utxo.getScriptPubKey();
         PublicKey pubKey = ECDSAUtils.publicKeyFromBytes(Base58.decode(publicKey));
         // Verify the signature on `utxoLocator` with the public key
-        return ECDSAUtils.verifyECDSA(pubKey, utxoLocator, signature);
+        return ECDSAUtils.verifyECDSA(pubKey, signature, utxoLocator);
     }
 
     public void setBlockchain(Blockchain blockchain) {
@@ -180,5 +180,9 @@ public class Wallet {
 
     public void setGui(GUI gui) {
         this.gui = gui;
+    }
+
+    public void clearUtxos() {
+        this.utxoLocators.clear();
     }
 }

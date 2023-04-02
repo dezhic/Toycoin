@@ -202,7 +202,7 @@ public class GUI extends Thread {
         copyBtn.addActionListener(e -> {
             int row = keyTable.getSelectedRow();
             int col = keyTable.getSelectedColumn();
-            if (row >= 0 && col >= 0) {
+            if (row >= 0 && col >= 0 && row < keyTable.getRowCount() && col < keyTable.getColumnCount()) {
                 String value = keyTable.getValueAt(row, col).toString();
                 StringSelection selection = new StringSelection(value);
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
