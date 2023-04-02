@@ -7,6 +7,9 @@ import storage.Wallet;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -48,7 +51,13 @@ public class GUI extends Thread {
     JTable keyTable;
     DefaultTableModel keyTableModel;
 
+    TextField genToAddrField = new TextField("");
+
+    JSpinner genNBlockSpinner = new JSpinner(new SpinnerNumberModel(5, 1, 9999, 1));
+
     JButton genKeyBtn = new JButton("GenKey");
+
+    JButton copyBtn = new JButton("Copy");
 
     private class LongTextCellRenderer extends DefaultTableCellRenderer {
         @Override
@@ -85,11 +94,19 @@ public class GUI extends Thread {
         mineBtn.addActionListener(e -> {
             // mining is time consuming, so we need to run it in a new thread
             new Thread(() -> {
-                blockchain.generateToAddress(5, "addr");
+                blockchain.generateToAddress((int) genNBlockSpinner.getValue(), genToAddrField.getText().trim());
             }).start();
         });
         mineBtn.setSize(100, 30);
         mineBtn.setLocation(480, 560);
+
+        genToAddrField.setSize(105, 30);
+        genToAddrField.setLocation(375, 560);
+        frame.getContentPane().add(genToAddrField);
+
+        genNBlockSpinner.setSize(70, 30);
+        genNBlockSpinner.setLocation(300, 560);
+        frame.getContentPane().add(genNBlockSpinner);
 
         syncBtn.addActionListener(e -> {
             blockchain.sync();
@@ -153,7 +170,7 @@ public class GUI extends Thread {
         keyTable.setCellSelectionEnabled(true);
         JScrollPane keyTablePane = new JScrollPane(keyTable);
         keyTablePane.setSize(250, 140);
-        keyTablePane.setLocation(20, 620);
+        keyTablePane.setLocation(20, 610);
         frame.getContentPane().add(keyTablePane);
 
         // GenKey button
@@ -166,8 +183,24 @@ public class GUI extends Thread {
             }
         });
         genKeyBtn.setSize(100, 30);
-        genKeyBtn.setLocation(20, 770);
+        genKeyBtn.setLocation(20, 750);
         frame.getContentPane().add(genKeyBtn);
+
+        // Copy button
+        // copy selected value in the key table cell to the clipboard
+        copyBtn.addActionListener(e -> {
+            int row = keyTable.getSelectedRow();
+            int col = keyTable.getSelectedColumn();
+            if (row >= 0 && col >= 0) {
+                String value = keyTable.getValueAt(row, col).toString();
+                StringSelection selection = new StringSelection(value);
+                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                clipboard.setContents(selection, selection);
+            }
+        });
+        copyBtn.setSize(100, 30);
+        copyBtn.setLocation(130, 750);
+        frame.getContentPane().add(copyBtn);
 
         frame.setVisible(true);
     }
