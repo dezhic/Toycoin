@@ -120,12 +120,15 @@ public class Wallet {
             throw new Exception("No enough funds");
         }
 
-
+        // outputs
+        List<TxOutput> outputs = new LinkedList<>();
+        outputs.add(new TxOutput(value, to));
+        if (total > value) {
+            // return change
+            outputs.add(new TxOutput(total - value, publicKey));
+        }
         // create transaction
-        // inputs
-
-
-        return null;
+        return new Transaction(inputs, outputs);
     }
 
     /**
