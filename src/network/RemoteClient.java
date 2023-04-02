@@ -332,7 +332,7 @@ public class RemoteClient extends Thread {
 
     }
 
-    public void handleHeaders(Object payload) {
+    private void handleHeaders(Object payload) {
         System.out.println("Received headers from " + socket.getInetAddress().getHostAddress() + ":" + socket.getPort());
         Headers headers = (Headers) payload;
         // skip headers that are already known
