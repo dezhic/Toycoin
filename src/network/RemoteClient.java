@@ -1,5 +1,6 @@
 package network;
 
+import datatype.Transaction;
 import protocol.Message;
 import datatype.Block;
 import datatype.Header;
@@ -87,6 +88,9 @@ public class RemoteClient extends Thread {
                     case HEADERS:
                         handleHeaders(message.getHeaders());
                         break;
+                    case TX:
+                        handleTx(message.getTransaction());
+                        break;
                     default:
                         throw new Exception("Unknown command: " + message.getCommand());
                 }
@@ -103,6 +107,15 @@ public class RemoteClient extends Thread {
             }
 
         }
+    }
+
+    /**
+     * Handle the TX message.
+     * Store the transaction in the local memory pool.
+     * @param transaction received transaction
+     */
+    private void handleTx(Transaction transaction) {
+        localClient.addTransaction(transaction);
     }
 
     private void handleBlock(Object payload) {
@@ -154,7 +167,14 @@ public class RemoteClient extends Thread {
                     System.out.println("Don't have block " + item.getHash());
                 }
             } else if (item.getType() == MSG_TX) {
-                // TODO
+                // check if we have the transaction
+                if (localClient.hasTransaction(item.getHash())) {
+                    System.out.println("Sending transaction " + item.getHash());
+                    localClient.sendTransaction(localClient.getRemoteServer(socket.getInetAddress().getHostAddress(), socket.getPort()),
+                            localClient.getTransaction(item.getHash()));
+                } else {
+                    System.out.println("Don't have transaction " + item.getHash());
+                }
             }
         }
     }
@@ -188,8 +208,14 @@ public class RemoteClient extends Thread {
                 }
 
             } else if (item.getType() == MSG_TX) {
-                // TODO
-//                localClient.sendGetData(socket.getInetAddress().getHostAddress(), item.getHash());
+                // check if we have the transaction
+                if (localClient.hasTransaction(item.getHash())) {
+                    System.out.println("Already have transaction " + item.getHash());
+                } else {
+                    // request transaction
+                    GetData getData = new GetData(Collections.singletonList(item));
+                    localClient.sendGetData(localClient.getRemoteServer(socket.getInetAddress().getHostAddress(), socket.getPort()), getData);
+                }
             }
         }
 

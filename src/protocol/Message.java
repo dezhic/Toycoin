@@ -2,6 +2,7 @@ package protocol;
 
 import com.google.gson.Gson;
 import datatype.Block;
+import datatype.Transaction;
 import protocol.Command;
 import protocol.message.*;
 
@@ -18,10 +19,12 @@ public class Message implements Externalizable {
     private GetBlocks getBlocks;
     private GetHeaders getHeaders;
     private Headers headers;
+    private Transaction transaction;
 
     public static Builder builder() {
         return new Builder();
     }
+
     public static class Builder {
         private Command command;
         private Inv inv;
@@ -32,6 +35,7 @@ public class Message implements Externalizable {
         private GetBlocks getBlocks;
         private GetHeaders getHeaders;
         private Headers headers;
+        private Transaction transaction;
 
         public Builder() {
         }
@@ -81,6 +85,11 @@ public class Message implements Externalizable {
             return this;
         }
 
+        public Builder transaction(Transaction transaction) {
+            this.transaction = transaction;
+            return this;
+        }
+
         public Message build() {
             return new Message(this);
         }
@@ -96,6 +105,7 @@ public class Message implements Externalizable {
         this.getBlocks = builder.getBlocks;
         this.getHeaders = builder.getHeaders;
         this.headers = builder.headers;
+        this.transaction = builder.transaction;
     }
 
     public Message() {
@@ -146,6 +156,7 @@ public class Message implements Externalizable {
             this.getBlocks = message.getGetBlocks();
             this.getHeaders = message.getGetHeaders();
             this.headers = message.getHeaders();
+            this.transaction = message.getTransaction();
             return;
         }
         String json = (String) obj;
@@ -162,6 +173,7 @@ public class Message implements Externalizable {
         this.getBlocks = message.getGetBlocks();
         this.getHeaders = message.getGetHeaders();
         this.headers = message.getHeaders();
+        this.transaction = message.getTransaction();
     }
 
     public static Message fromJson(String json) {
@@ -240,4 +252,9 @@ public class Message implements Externalizable {
     public void setHeaders(Headers headers) {
         this.headers = headers;
     }
+
+    public Transaction getTransaction() {
+        return transaction;
+    }
+
 }

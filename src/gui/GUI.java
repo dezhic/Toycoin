@@ -2,6 +2,7 @@ package gui;
 import datatype.Block;
 import datatype.Blockchain;
 import network.LocalClient;
+import storage.MemPool;
 import storage.Wallet;
 
 import javax.swing.*;

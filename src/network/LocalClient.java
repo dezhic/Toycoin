@@ -5,6 +5,7 @@ import gui.GUI;
 import protocol.Command;
 import protocol.Message;
 import protocol.message.*;
+import storage.MemPool;
 
 import java.io.File;
 import java.io.IOException;
@@ -239,20 +240,37 @@ public class LocalClient {
     }
 
     public void broadcastTx(String from, String to, int amount) throws Exception {
+        // create transaction
         Transaction tx = blockchain.getWallet().createTransaction(from, to, amount);
-
-        // TODO: broadcast tx
+        // add transaction to local MemPool
+        MemPool.getInstance().add(tx);
         for (RemoteServer server : servers) {
-//            try {
-//                InventoryItem item = new InventoryItem(InventoryType.MSG_TX, tx.getHash());
-//                Inv inv = new Inv(Collections.singletonList(item));
-//                server.sendInv(inv);
-//            } catch (IOException e) {
-//                System.out.println("Could not send tx to " + server.getSocket().getInetAddress().getHostAddress() + ":" + server.getSocket().getPort());
-//                servers.remove(server);
-//                System.out.println("Removed server " + server.getSocket().getInetAddress().getHostAddress() + ":" + server.getSocket().getPort());
-//            }
+            try {
+                InventoryItem item = new InventoryItem(InventoryType.MSG_TX, tx.getId());
+                Inv inv = new Inv(Collections.singletonList(item));
+                server.sendInv(inv);
+            } catch (IOException e) {
+                System.out.println("Could not send tx to " + server.getSocket().getInetAddress().getHostAddress() + ":" + server.getSocket().getPort());
+                servers.remove(server);
+                System.out.println("Removed server " + server.getSocket().getInetAddress().getHostAddress() + ":" + server.getSocket().getPort());
+            }
         }
+    }
+
+    public boolean hasTransaction(String id) {
+        return MemPool.getInstance().get(id) != null;
+    }
+
+    public Transaction getTransaction(String id) {
+        return MemPool.getInstance().get(id);
+    }
+
+    public void addTransaction(Transaction tx) {
+        MemPool.getInstance().add(tx);
+    }
+
+    public void sendTransaction(RemoteServer rs, Transaction tx) {
+        rs.sendTransaction(tx);
     }
 
 }

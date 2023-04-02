@@ -1,6 +1,7 @@
 package network;
 
 import com.google.gson.Gson;
+import datatype.Transaction;
 import protocol.Command;
 import protocol.Message;
 import datatype.Block;
@@ -146,5 +147,17 @@ public class RemoteServer {
 
     public Socket getSocket() {
         return socket;
+    }
+
+    public void sendTransaction(Transaction tx) {
+        Message message = Message.builder()
+                        .command(Command.TX)
+                        .transaction(tx)
+                        .build();
+        try {
+            send(message);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
