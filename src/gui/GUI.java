@@ -78,8 +78,12 @@ public class GUI extends Thread {
 
     LongTextCellRenderer longTextCellRenderer = new LongTextCellRenderer();
 
-    public GUI(String name) {
-        frame = new JFrame(name);
+    private static final GUI instance = new GUI();
+    public static GUI getInstance() {
+        return instance;
+    }
+    private GUI() {
+        frame = new JFrame(System.getenv("PORT"));
         blockListModel = new DefaultListModel<>();
         blockList = new JList<>(blockListModel);
         peerTableModel = new DefaultTableModel(new String[] {"Peer IP", "Server Port", "Client Port"}, 0);

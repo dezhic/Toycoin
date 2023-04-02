@@ -16,23 +16,23 @@ public class MiningTest {
     public static Blockchain blockchain; // store the Block
 
     public static void main(String[]args) throws NoSuchAlgorithmException, IOException {
-        GUI GUI = new GUI(System.getenv("PORT"));
-        GUI.start();
+        GUI gui = GUI.getInstance();
+        gui.start();
 
         blockchain = new Blockchain();
-        GUI.setBlockchain(blockchain);
-        blockchain.setGui(GUI);
+        gui.setBlockchain(blockchain);
+        blockchain.setGui(gui);
 
         Wallet wallet = new Wallet();
-        GUI.setWallet(wallet);
+        gui.setWallet(wallet);
         blockchain.setWallet(wallet);
         wallet.setBlockchain(blockchain);
-        wallet.setGui(GUI);
+        wallet.setGui(gui);
 
 
-        LocalClient localClient = new LocalClient(blockchain, GUI);
+        LocalClient localClient = new LocalClient(blockchain, gui);
         blockchain.setLocalClient(localClient);
-        GUI.setLocalClient(localClient);
+        gui.setLocalClient(localClient);
 
         LocalServer localServer = new LocalServer(localClient);
         localServer.start();
