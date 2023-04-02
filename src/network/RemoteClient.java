@@ -148,7 +148,7 @@ public class RemoteClient extends Thread {
             // add block to blockchain
             localClient.addBlock(block);
         } else {
-            System.out.println("datatype.Block is not valid");
+            System.out.println("Block is not valid (not connected to the last block)");
         }
     }
 
@@ -368,9 +368,8 @@ public class RemoteClient extends Thread {
                         )
                 );
             } else {
-                // request the headers from the last known block
-                localClient.sendGetHeaders(localClient.getRemoteServer(socket.getInetAddress().getHostAddress(), socket.getPort()),
-                        new GetHeaders(Collections.singletonList(localClient.getLastBlock().getHash()), null));
+                System.out.println("Unconnected headers received. Syncing blockchain...");
+                localClient.blockchain.sync();
             }
         }
 
