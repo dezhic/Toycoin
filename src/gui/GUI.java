@@ -63,8 +63,8 @@ public class GUI extends Thread {
         @Override
         public void setValue(Object value) {
             String text = value.toString();
-            if (text.length() > 8) {
-                setText(text.substring(0, 2) + "..." + text.substring(text.length() - 5));
+            if (text.length() > 7) {
+                setText(text.substring(0, 2) + "..." + text.substring(text.length() - 4));
             } else {
                 setText(text);
             }
@@ -81,6 +81,7 @@ public class GUI extends Thread {
         peerTable = new JTable(peerTableModel);
         utxoTableModel = new DefaultTableModel(new String[] {"UTXO Tx.", "TxOut Idx", "PubKey", "Amt"}, 0);
         utxoTable = new JTable(utxoTableModel);
+        utxoTable.setDefaultRenderer(Object.class, longTextCellRenderer);
         keyTableModel = new DefaultTableModel(new String[] {"PubKey", "PrivKey", "Balance"}, 0);
         keyTable = new JTable(keyTableModel);
         keyTable.setDefaultRenderer(Object.class, longTextCellRenderer);
