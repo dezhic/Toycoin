@@ -3,6 +3,7 @@ package datatype;
 import gui.GUI;
 import network.LocalClient;
 import protocol.message.GetBlocks;
+import storage.Wallet;
 import util.ProofOfWork;
 
 import java.security.KeyFactory;
@@ -27,6 +28,8 @@ public class Blockchain {
     private Map<String, TxOutput> utxos;  // unspent transaction output map <txid:txOutIndex, TxOutput>
 
     private GUI gui;
+
+    private Wallet wallet;
 
     public Blockchain() {
         this.blockHeightIndex = new HashMap<>();
@@ -335,5 +338,13 @@ public class Blockchain {
 
     public void setGui(GUI gui) {
         this.gui = gui;
+    }
+
+    public Wallet getWallet() {
+        return wallet;
+    }
+
+    public void setWallet(Wallet wallet) {
+        this.wallet = wallet;
     }
 }

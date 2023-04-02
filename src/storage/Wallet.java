@@ -2,6 +2,7 @@ package storage;
 
 import datatype.Transaction;
 import datatype.TxOutput;
+import util.Base58;
 import util.ECDSAUtils;
 
 import java.security.KeyPair;
@@ -30,8 +31,10 @@ public class Wallet {
      */
     public void generateKey() {
         KeyPair keyPair = ECDSAUtils.getKeyPair();
-        String publicKey = String.valueOf(keyPair.getPublic());
-        String privateKey = String.valueOf(keyPair.getPrivate());
+        byte[] pubKeyBytes = keyPair.getPublic().getEncoded();
+        byte[] privKeyBytes = keyPair.getPrivate().getEncoded();
+        String publicKey = Base58.encode(pubKeyBytes);
+        String privateKey = Base58.encode(privKeyBytes);
         keys.put(publicKey, privateKey);
     }
 

@@ -4,6 +4,7 @@ import network.LocalServer;
 import datatype.Blockchain;
 import datatype.MerkleTree;
 import datatype.Transaction;
+import storage.Wallet;
 import util.ProofOfWork;
 
 import java.io.IOException;
@@ -22,9 +23,15 @@ public class MiningTest {
         GUI.setBlockchain(blockchain);
         blockchain.setGui(GUI);
 
+        Wallet wallet = new Wallet();
+        GUI.setWallet(wallet);
+        blockchain.setWallet(wallet);
+
+
         LocalClient localClient = new LocalClient(blockchain, GUI);
         blockchain.setLocalClient(localClient);
         GUI.setLocalClient(localClient);
+
         LocalServer localServer = new LocalServer(localClient);
         localServer.start();
         localClient.initialize();  // localClient needs to initialize AFTER localServer starts!

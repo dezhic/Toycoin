@@ -2,8 +2,10 @@ package gui;
 import datatype.Block;
 import datatype.Blockchain;
 import network.LocalClient;
+import storage.Wallet;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.io.IOException;
 import java.util.List;
@@ -17,6 +19,11 @@ public class GUI extends Thread {
     Blockchain blockchain;
     public void setBlockchain(Blockchain blockchain) {
         this.blockchain = blockchain;
+    }
+
+    Wallet wallet;
+    public void setWallet(Wallet wallet) {
+        this.wallet = wallet;
     }
 
     LocalClient localClient;
@@ -38,6 +45,25 @@ public class GUI extends Thread {
     JTable utxoTable;
     DefaultTableModel utxoTableModel;
 
+    JTable keyTable;
+    DefaultTableModel keyTableModel;
+
+    JButton genKeyBtn = new JButton("GenKey");
+
+    private class LongTextCellRenderer extends DefaultTableCellRenderer {
+        @Override
+        public void setValue(Object value) {
+            String text = value.toString();
+            if (text.length() > 8) {
+                setText(text.substring(0, 2) + "..." + text.substring(text.length() - 5));
+            } else {
+                setText(text);
+            }
+        }
+    }
+
+    LongTextCellRenderer longTextCellRenderer = new LongTextCellRenderer();
+
     public GUI(String name) {
         frame = new JFrame(name);
         blockListModel = new DefaultListModel<>();
@@ -46,6 +72,9 @@ public class GUI extends Thread {
         peerTable = new JTable(peerTableModel);
         utxoTableModel = new DefaultTableModel(new String[] {"UTXO Tx.", "TxOut Idx", "PubKey", "Amt"}, 0);
         utxoTable = new JTable(utxoTableModel);
+        keyTableModel = new DefaultTableModel(new String[] {"PubKey", "PrivKey", "Balance"}, 0);
+        keyTable = new JTable(keyTableModel);
+        keyTable.setDefaultRenderer(Object.class, longTextCellRenderer);
     }
 
     public void run() {
@@ -118,6 +147,27 @@ public class GUI extends Thread {
         utxoTablePane.setSize(250, 200);
         utxoTablePane.setLocation(20, 230);
         frame.getContentPane().add(utxoTablePane);
+
+        // Key table
+        keyTable.setDefaultEditor(Object.class, null);  // disable editing
+        keyTable.setCellSelectionEnabled(true);
+        JScrollPane keyTablePane = new JScrollPane(keyTable);
+        keyTablePane.setSize(250, 140);
+        keyTablePane.setLocation(20, 620);
+        frame.getContentPane().add(keyTablePane);
+
+        // GenKey button
+        genKeyBtn.addActionListener(e -> {
+            wallet.generateKey();
+            keyTableModel.setRowCount(0);
+            List<String> keysWithBalance = wallet.getKeysWithBalance();
+            for (String kwb : keysWithBalance) {
+                keyTableModel.addRow(kwb.split(":"));
+            }
+        });
+        genKeyBtn.setSize(100, 30);
+        genKeyBtn.setLocation(20, 770);
+        frame.getContentPane().add(genKeyBtn);
 
         frame.setVisible(true);
     }
