@@ -1,5 +1,6 @@
-package datatype;
+package storage;
 
+import datatype.*;
 import gui.GUI;
 import network.LocalClient;
 import protocol.message.GetBlocks;

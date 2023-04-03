@@ -1,6 +1,5 @@
 package storage;
 
-import datatype.Blockchain;
 import datatype.Transaction;
 import datatype.TxInput;
 import datatype.TxOutput;

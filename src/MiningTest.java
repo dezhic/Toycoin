@@ -1,7 +1,7 @@
 import gui.GUI;
 import network.LocalClient;
 import network.LocalServer;
-import datatype.Blockchain;
+import storage.Blockchain;
 import datatype.MerkleTree;
 import datatype.Transaction;
 import storage.Wallet;

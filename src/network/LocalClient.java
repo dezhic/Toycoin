@@ -2,9 +2,8 @@ package network;
 
 import datatype.*;
 import gui.GUI;
-import protocol.Command;
-import protocol.Message;
 import protocol.message.*;
+import storage.Blockchain;
 import storage.MemPool;
 
 import java.io.File;

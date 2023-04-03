@@ -1,7 +1,7 @@
 package util;
 
 import datatype.Block;
-import datatype.Blockchain;
+import storage.Blockchain;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
