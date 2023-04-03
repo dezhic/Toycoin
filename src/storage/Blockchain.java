@@ -102,7 +102,6 @@ public class Blockchain {
         }
         // check if block is valid
         if (block.getPreviousHash().equals(lastBlock.getHash())) {
-            // TODO: check if transactions are valid
             // add block to blockchain
             block.setPrevBlock(lastBlock);
             lastBlock = block;
